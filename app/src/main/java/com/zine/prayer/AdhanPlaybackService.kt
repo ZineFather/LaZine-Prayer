@@ -79,8 +79,10 @@ class AdhanPlaybackService : Service() {
         }
         val title = if (arabic) "حان موعد صلاة ${names[prayer] ?: prayer}"
             else "It is time for ${names[prayer] ?: prayer}"
-        val stopIntent = Intent(this, AdhanPlaybackService::class.java).setAction(ACTION_STOP)
-        val stopPendingIntent = PendingIntent.getService(
+        val stopIntent = Intent(this, PrayerAlarmReceiver::class.java)
+            .setAction("com.zine.prayer.STOP_ADHAN")
+            .putExtra("prayer", prayer)
+        val stopPendingIntent = PendingIntent.getBroadcast(
             this, 8101, stopIntent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
