@@ -126,15 +126,37 @@ class MainActivity:ComponentActivity(){
   keys.forEach{k->var expanded by remember(k){mutableStateOf(false)};Card(colors=CardDefaults.cardColors(containerColor=Panel)){Column(Modifier.fillMaxWidth().padding(12.dp),verticalArrangement=Arrangement.spacedBy(8.dp)){Text(if(ar)arNames[k]!! else enNames[k]!!,color=Color.White,fontWeight=FontWeight.SemiBold);Row(verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(8.dp)){Box(Modifier.weight(1f)){OutlinedButton(onClick={expanded=true},modifier=Modifier.fillMaxWidth()){Text(when(modes[k]){"ADHAN"->if(ar)"أذان كامل" else "Full Adhan";"SHORT"->if(ar)"نغمة قصيرة" else "Short tone";"SILENT"->if(ar)"صامت" else "Silent";"OFF"->if(ar)"إيقاف" else "Off";else->if(ar)"إشعار عادي" else "Notification"})};DropdownMenu(expanded,{expanded=false}){listOf("ADHAN","SHORT","NOTIFICATION","SILENT","OFF").forEach{v->DropdownMenuItem(text={Text(when(v){"ADHAN"->if(ar)"أذان كامل" else "Full Adhan";"SHORT"->if(ar)"نغمة قصيرة" else "Short tone";"NOTIFICATION"->if(ar)"إشعار عادي" else "Notification";"SILENT"->if(ar)"صامت" else "Silent";else->if(ar)"إيقاف" else "Off"})},onClick={setModes(modes+(k to v));expanded=false})}}};val test=Intent(ctx,PrayerAlarmReceiver::class.java).setAction("com.zine.prayer.TEST").putExtra("prayer",k);OutlinedButton(onClick={ctx.sendBroadcast(test)}){Text(if(ar)"تجربة" else "Test")}};if(modes[k]=="ADHAN")Text(if(ar)"الأذان يعمل من ملف محلي مرفق داخل التطبيق." else "Adhan plays from an audio file bundled in the app.",color=Color.Gray,fontSize=10.sp)}}}
   Button(onClick=permissions,modifier=Modifier.fillMaxWidth()){Text(if(ar)"إدارة أذونات الإشعارات والمنبهات" else "Notification & alarm permissions")}
   OutlinedButton(onClick=developer,modifier=Modifier.fillMaxWidth()){Text(if(ar)"About Developer • عن المطور" else "About Developer")}
-  OutlinedButton(onClick=bug,modifier=Modifier.fillMaxWidth()){Text(if(ar)"Report a Bug • الإبلاغ عن خطأ" else "Report a bug")}\n  OutlinedButton(onClick=sourceCode,modifier=Modifier.fillMaxWidth()){Text(if(ar)"Source Code • الكود المصدري على GitHub" else "Source Code • GitHub")}
+  OutlinedButton(onClick=bug,modifier=Modifier.fillMaxWidth()){Text(if(ar)"Report a Bug • الإبلاغ عن خطأ" else "Report a bug")}
+  OutlinedButton(onClick=sourceCode,modifier=Modifier.fillMaxWidth()){Text(if(ar)"Source Code • الكود المصدري على GitHub" else "Source Code • GitHub")}
  }
 }
 @Composable private fun Developer(lang:String,back:()->Unit,telegram:()->Unit,bug:()->Unit){
- val ar=lang=="ar";Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(20.dp),horizontalAlignment=Alignment.CenterHorizontally,verticalArrangement=Arrangement.spacedBy(14.dp)){
-  TextButton(onClick=back){Text(if(ar)"رجوع" else "Back")};Image(painter=painterResource(id=R.drawable.zinefather),contentDescription="ZineFather developer profile",modifier=Modifier.size(132.dp).clip(CircleShape),contentScale=ContentScale.Crop)
-  Text("ZineFather",fontSize=28.sp,fontWeight=FontWeight.Bold,color=Color.White);Text("@ZineFather",color=Blue)
-  Card(colors=CardDefaults.cardColors(containerColor=Panel)){Column(Modifier.padding(18.dp)){Text(if(ar)"عن المطور" else "About Developer",color=Blue,fontWeight=FontWeight.Bold);Text(if(ar)"مطور رومات أندرويد ومؤسس ZineROM، يعمل على تطوير رومات Samsung وأدوات أندرويد ومواقع وتطبيقات، ويساهم في مشاريع برمجية ومجتمعات تقنية. للتواصل والدعم أو الإبلاغ عن الأخطاء استخدم الروابط أدناه." else "Android ROM developer and founder of ZineROM, working on Samsung custom ROMs, Android tools, websites and applications, and contributing to software projects and developer communities. Use the links below for support or bug reports.")}}
-  Button(onClick=telegram,modifier=Modifier.fillMaxWidth()){Text("Telegram @ZineFather")};OutlinedButton(onClick=bug,modifier=Modifier.fillMaxWidth()){Text(if(ar)"الإبلاغ عن مشكلة" else "Report a bug")}
+ val ar=lang=="ar"
+ Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal=18.dp, vertical=12.dp),verticalArrangement=Arrangement.spacedBy(16.dp)){
+  TextButton(onClick=back,contentPadding=PaddingValues(horizontal=8.dp,vertical=6.dp)){Text("‹  "+if(ar)"رجوع للإعدادات" else "Back to Settings",color=Blue,fontSize=14.sp)}
+  Card(colors=CardDefaults.cardColors(containerColor=Color(0xFF14243A)),shape=RoundedCornerShape(28.dp),modifier=Modifier.fillMaxWidth()){
+   Column(Modifier.fillMaxWidth().padding(vertical=26.dp,horizontal=20.dp),horizontalAlignment=Alignment.CenterHorizontally,verticalArrangement=Arrangement.spacedBy(9.dp)){
+    Box(contentAlignment=Alignment.BottomEnd){
+     Image(painter=painterResource(id=R.drawable.zinefather),contentDescription="ZineFather developer profile",modifier=Modifier.size(116.dp).clip(CircleShape),contentScale=ContentScale.Crop)
+     Surface(shape=CircleShape,color=Color(0xFF173F35),modifier=Modifier.size(25.dp)){Box(contentAlignment=Alignment.Center){Text("✓",color=Color(0xFF8BE0B2),fontSize=13.sp,fontWeight=FontWeight.Bold)}}
+    }
+    Text("ZineFather",fontSize=27.sp,fontWeight=FontWeight.Bold,color=Color.White)
+    Text("@ZineFather",fontSize=14.sp,color=Blue)
+    Surface(shape=RoundedCornerShape(50),color=Color(0xFF203752)){Text(if(ar)"Android Developer • ROM Maintainer" else "Android Developer • ROM Maintainer",modifier=Modifier.padding(horizontal=13.dp,vertical=7.dp),fontSize=11.sp,color=Color(0xFFD8E9FF))}
+   }
+  }
+  Column(verticalArrangement=Arrangement.spacedBy(8.dp)){
+   Text(if(ar)"نبذة عن المطور" else "ABOUT THE DEVELOPER",fontSize=12.sp,fontWeight=FontWeight.Bold,color=Blue)
+   Card(colors=CardDefaults.cardColors(containerColor=Panel),shape=RoundedCornerShape(20.dp),modifier=Modifier.fillMaxWidth()){
+    Text(if(ar)"مطور رومات أندرويد ومؤسس ZineROM. يعمل على تطوير رومات Samsung وأدوات أندرويد ومواقع وتطبيقات، ويهتم بتحسين تجربة الاستخدام ودعم الأجهزة." else "Android ROM developer and founder of ZineROM. Focused on Samsung custom ROMs, Android tools, websites and apps, with an emphasis on usability and device support.",modifier=Modifier.padding(18.dp),fontSize=14.sp,lineHeight=22.sp,color=Color(0xFFE0E6EF))
+   }
+  }
+  Column(verticalArrangement=Arrangement.spacedBy(10.dp)){
+   Text(if(ar)"التواصل والدعم" else "CONTACT & SUPPORT",fontSize=12.sp,fontWeight=FontWeight.Bold,color=Blue)
+   Button(onClick=telegram,modifier=Modifier.fillMaxWidth(),shape=RoundedCornerShape(15.dp),contentPadding=PaddingValues(vertical=14.dp)){Text("Telegram  •  @ZineFather",fontWeight=FontWeight.SemiBold)}
+   OutlinedButton(onClick=bug,modifier=Modifier.fillMaxWidth(),shape=RoundedCornerShape(15.dp),contentPadding=PaddingValues(vertical=14.dp)){Text(if(ar)"الإبلاغ عن مشكلة" else "Report a bug")}
+  }
+  Text("LaZine Prayer",modifier=Modifier.fillMaxWidth(),textAlign=androidx.compose.ui.text.style.TextAlign.Center,color=Color.Gray,fontSize=11.sp)
  }
 }
 private fun createChannel(c:Context){if(Build.VERSION.SDK_INT>=26){val nm=c.getSystemService(NotificationManager::class.java)
