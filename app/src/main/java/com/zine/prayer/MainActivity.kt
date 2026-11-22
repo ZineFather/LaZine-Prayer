@@ -15,6 +15,8 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -56,7 +58,7 @@ class MainActivity:ComponentActivity(){
  var page by remember{mutableStateOf(0)}; var lang by remember{mutableStateOf(pref.getString("lang","ar")?:"ar")}
  var cityId by remember{mutableStateOf(pref.getString("city","alex")?:"alex")}; var method by remember{mutableStateOf(pref.getString("method","egypt")?:"egypt")}; var hanafi by remember{mutableStateOf(pref.getBoolean("hanafi",false))}
  var offsets by remember{mutableStateOf(keys.associateWith{pref.getInt("off_"+it,0)})}
- var modes by remember{mutableStateOf(keys.associateWith{pref.getString("mode_"+it,"NOTIFICATION")?:"NOTIFICATION"})}
+ var modes by remember{mutableStateOf(keys.associateWith{pref.getString("mode_"+it,"ADHAN")?:"ADHAN"})}
  var tick by remember{mutableLongStateOf(System.currentTimeMillis())}
  LaunchedEffect(Unit){while(true){tick=System.currentTimeMillis();delay(1000)}}
  LaunchedEffect(lang,cityId,method,hanafi,offsets,modes){val e=pref.edit().putString("lang",lang).putString("city",cityId).putString("method",method).putBoolean("hanafi",hanafi);offsets.forEach{(k,v)->e.putInt("off_"+k,v)};modes.forEach{(k,v)->e.putString("mode_"+k,v)};e.apply()}
@@ -69,10 +71,10 @@ class MainActivity:ComponentActivity(){
  val remain=Duration.between(now,upcoming.second.toInstant()).seconds.coerceAtLeast(0)
  val hijri=runCatching{HijrahDate.from(date).toString()}.getOrDefault("")
  LaunchedEffect(times,date,modes,city,hanafi,offsets,method){reschedulePrayerAlarms(ctx)}
- Column(Modifier.fillMaxSize().background(Black)){
+ Column(Modifier.fillMaxSize().background(Black).statusBarsPadding()){
   CompositionLocalProvider(LocalLayoutDirection provides if(lang=="ar")LayoutDirection.Rtl else LayoutDirection.Ltr){
   Row(Modifier.fillMaxWidth().padding(horizontal=18.dp, vertical=12.dp),horizontalArrangement=Arrangement.SpaceBetween,verticalAlignment=Alignment.CenterVertically){
-   Column{Text("Lenzin Prayer",fontSize=23.sp,fontWeight=FontWeight.Bold,color=Color.White);Text(if(lang=="ar")"مواقيت الصلاة بدون إنترنت" else "Offline prayer times",color=Color.LightGray,fontSize=12.sp)}
+   Column{Text("LaZine Prayer",fontSize=23.sp,fontWeight=FontWeight.Bold,color=Color.White);Text(if(lang=="ar")"مواقيت الصلاة بدون إنترنت" else "Offline prayer times",color=Color.LightGray,fontSize=12.sp)}
    TextButton(onClick={page=1}){Text("⚙  "+if(lang=="ar")"الإعدادات" else "Settings",color=Blue,fontSize=15.sp)}
   }
   when(page){
@@ -84,7 +86,7 @@ class MainActivity:ComponentActivity(){
   }
   }
   Spacer(Modifier.weight(1f))
-  NavigationBar(containerColor=Panel){NavigationBarItem(page==0,{page=0},icon={Text("⌂")},label={Text(if(lang=="ar")"الرئيسية" else "Home")});NavigationBarItem(page!=0,{page=1},icon={Text("⚙")},label={Text(if(lang=="ar")"الإعدادات" else "Settings")})}
+  NavigationBar(containerColor=Panel,modifier=Modifier.navigationBarsPadding()){NavigationBarItem(page==0,{page=0},icon={Text("⌂")},label={Text(if(lang=="ar")"الرئيسية" else "Home")});NavigationBarItem(page!=0,{page=1},icon={Text("⚙")},label={Text(if(lang=="ar")"الإعدادات" else "Settings")})}
  }
 }
 @Composable private fun Home(lang:String,city:City,date:LocalDate,hijri:String,t:PrayerTimes,next:String,left:Long){
@@ -131,13 +133,13 @@ class MainActivity:ComponentActivity(){
  }
 }
 private fun createChannel(c:Context){if(Build.VERSION.SDK_INT>=26){val nm=c.getSystemService(NotificationManager::class.java)
- val alarm=NotificationChannel("prayer_adhan_v2","Adhan audio",NotificationManager.IMPORTANCE_HIGH)
- alarm.description="Full offline Adhan audio at prayer time"
- alarm.setSound(Uri.parse("android.resource://"+c.packageName+"/"+R.raw.adhan),android.media.AudioAttributes.Builder().setUsage(android.media.AudioAttributes.USAGE_ALARM).build())
- val normal=NotificationChannel("prayer_alerts","Prayer notifications",NotificationManager.IMPORTANCE_HIGH)
- normal.description="Short system notification sound for prayer time"
- val short=NotificationChannel("prayer_short","Short prayer tone",NotificationManager.IMPORTANCE_HIGH)
- short.description="Short system notification tone"
- val silent=NotificationChannel("prayer_silent","Silent prayer notifications",NotificationManager.IMPORTANCE_LOW);silent.setSound(null,null);silent.enableVibration(false)
+ val alarm=NotificationChannel("prayer_adhan_v3","Full Adhan",NotificationManager.IMPORTANCE_LOW)
+ alarm.description="Full offline Adhan playback; stop it from the notification"
+ alarm.setSound(null,null);alarm.enableVibration(false)
+ val normal=NotificationChannel("prayer_alerts_v2","Prayer notification sound",NotificationManager.IMPORTANCE_HIGH)
+ normal.description="Normal Android notification sound at prayer time"
+ val short=NotificationChannel("prayer_short_v2","Short prayer tone",NotificationManager.IMPORTANCE_HIGH)
+ short.description="Short Android notification tone at prayer time"
+ val silent=NotificationChannel("prayer_silent_v2","Silent prayer notifications",NotificationManager.IMPORTANCE_LOW);silent.setSound(null,null);silent.enableVibration(false)
  nm.createNotificationChannel(alarm);nm.createNotificationChannel(normal);nm.createNotificationChannel(short);nm.createNotificationChannel(silent)}}
 internal fun scheduleAlarms(c:Context,t:PrayerTimes,d:LocalDate,modes:Map<String,String>,zoneName:String){val am=c.getSystemService(AlarmManager::class.java);val zone=ZoneId.of(zoneName);val now=System.currentTimeMillis();t.entries().filter{it.first in keys}.forEach{(k,v)->if(modes[k]=="OFF")return@forEach;val at=d.atStartOfDay(zone).toEpochSecond()*1000+(v*3600000.0).toLong();if(at<=now)return@forEach;val i=Intent(c,PrayerAlarmReceiver::class.java).putExtra("prayer",k);val pi=PendingIntent.getBroadcast(c,d.toEpochDay().toInt()*10+keys.indexOf(k)+1,i,PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE);runCatching{if(Build.VERSION.SDK_INT>=31&&!am.canScheduleExactAlarms())am.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP,at,pi) else am.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP,at,pi)}}}
