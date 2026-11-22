@@ -41,6 +41,8 @@ import java.util.Locale
 import kotlinx.coroutines.delay
 private val Black=Color(0xFF050609); private val Panel=Color(0xFF111722); private val Blue=Color(0xFF83BFFF)
 private const val PREF="lenzin_prayer_settings"; private const val BUG="https://t.me/ZineROMProject/9"; private const val DEV="https://t.me/ZineFather"
+private data class AdhanVoice(val id:String,val ar:String,val en:String,val note:String)
+private val adhanVoices=listOf(AdhanVoice("adam","الأذان الأساسي","Original Adhan","Adam-synagda • CC0"),AdhanVoice("sabah","صباح فخري","Sabah Fakhri","Public-domain recording • 1985"),AdhanVoice("aishatu","أذان بصوت Aishatu98","Aishatu98 Adhan","CC0 recording"))
 private data class City(val id:String,val ar:String,val en:String,val lat:Double,val lon:Double,val zone:String="Africa/Cairo")
 private val cityList=listOf(City("alex","الإسكندرية","Alexandria",31.2001,29.9187),City("cairo","القاهرة","Cairo",30.0444,31.2357),City("mecca","مكة المكرمة","Makkah",21.4225,39.8262,"Asia/Riyadh"))
 private val keys=listOf("fajr","dhuhr","asr","maghrib","isha")
@@ -55,7 +57,7 @@ class MainActivity:ComponentActivity(){
 }
 @Composable private fun App(open:(String)->Unit){
  val ctx=androidx.compose.ui.platform.LocalContext.current; val pref=remember{ctx.getSharedPreferences(PREF,0)}
- var page by remember{mutableStateOf(0)}; var customAdhanUri by remember{mutableStateOf(pref.getString("custom_adhan_uri",null))}; val audioPicker=androidx.activity.compose.rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()){uri->if(uri!=null){runCatching{ctx.contentResolver.takePersistableUriPermission(uri,Intent.FLAG_GRANT_READ_URI_PERMISSION)};customAdhanUri=uri.toString();pref.edit().putString("custom_adhan_uri",customAdhanUri).apply()}}; var lang by remember{mutableStateOf(pref.getString("lang","ar")?:"ar")}
+ var page by remember{mutableStateOf(0)}; var customAdhanUri by remember{mutableStateOf(pref.getString("custom_adhan_uri",null))}; var adhanVoice by remember{mutableStateOf(pref.getString("adhan_voice","adam")?:"adam")}; val audioPicker=androidx.activity.compose.rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()){uri->if(uri!=null){runCatching{ctx.contentResolver.takePersistableUriPermission(uri,Intent.FLAG_GRANT_READ_URI_PERMISSION)};customAdhanUri=uri.toString();pref.edit().putString("custom_adhan_uri",customAdhanUri).apply()}}; var lang by remember{mutableStateOf(pref.getString("lang","ar")?:"ar")}
  var cityId by remember{mutableStateOf(pref.getString("city","alex")?:"alex")}; var method by remember{mutableStateOf(pref.getString("method","egypt")?:"egypt")}; var hanafi by remember{mutableStateOf(pref.getBoolean("hanafi",false))}
  var offsets by remember{mutableStateOf(keys.associateWith{pref.getInt("off_"+it,0)})}
  var modes by remember{mutableStateOf(keys.associateWith{
@@ -65,7 +67,7 @@ class MainActivity:ComponentActivity(){
  var tick by remember{mutableLongStateOf(System.currentTimeMillis())}
  LaunchedEffect(Unit){while(true){tick=System.currentTimeMillis();delay(1000)}}
  LaunchedEffect(Unit){if(!pref.getBoolean("mode_v3_migrated",false))pref.edit().putBoolean("mode_v3_migrated",true).apply()}
- LaunchedEffect(lang,cityId,method,hanafi,offsets,modes){val e=pref.edit().putString("lang",lang).putString("city",cityId).putString("method",method).putBoolean("hanafi",hanafi);offsets.forEach{(k,v)->e.putInt("off_"+k,v)};modes.forEach{(k,v)->e.putString("mode_"+k,v)};e.apply()}
+ LaunchedEffect(lang,cityId,method,hanafi,offsets,modes,adhanVoice){val e=pref.edit().putString("adhan_voice",adhanVoice).putString("lang",lang).putString("city",cityId).putString("method",method).putBoolean("hanafi",hanafi);offsets.forEach{(k,v)->e.putInt("off_"+k,v)};modes.forEach{(k,v)->e.putString("mode_"+k,v)};e.apply()}
  val city=cityList.first{it.id==cityId}; val zone=ZoneId.of(city.zone); val now=Instant.ofEpochMilli(tick); val clock=now.atZone(zone); val date=clock.toLocalDate()
  val times=remember(date,city,hanafi,offsets,method){PrayerCalculator.calculate(date,city.lat,city.lon,zone,hanafi,offsets,method)}
  val tomorrow=date.plusDays(1)
@@ -85,7 +87,7 @@ class MainActivity:ComponentActivity(){
    0->Home(lang,city,date,hijri,times,nextName,remain)
    1->SettingsScreen(lang,{lang=it},cityId,{cityId=it},method,{method=it},hanafi,{hanafi=it},offsets,{offsets=it},modes,{modes=it},
     {if(Build.VERSION.SDK_INT>=31)runCatching{ctx.startActivity(Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))};if(Build.VERSION.SDK_INT>=33)runCatching{ctx.startActivity(Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).putExtra(Settings.EXTRA_APP_PACKAGE,ctx.packageName).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))}},
-    {page=2},{open(BUG)},{open("https://github.com/ZineFather/LaZine-Prayer")},{audioPicker.launch(arrayOf("audio/*"))},{customAdhanUri=null;pref.edit().remove("custom_adhan_uri").apply()},customAdhanUri)
+    {page=2},{open(BUG)},{open("https://github.com/ZineFather/LaZine-Prayer")},{audioPicker.launch(arrayOf("audio/*"))},{customAdhanUri=null;pref.edit().remove("custom_adhan_uri").apply()},customAdhanUri,adhanVoice,{adhanVoice=it})
    else->Developer(lang,{page=1},{open(DEV)},{open(BUG)})
   }
   }
@@ -110,7 +112,7 @@ class MainActivity:ComponentActivity(){
   Text(if(ar)"الحساب محلي وفق زوايا الهيئة المصرية للمساحة: الفجر 19.5° والعشاء 17.5°." else "Local calculation: Egyptian convention (Fajr 19.5°, Isha 17.5°).",color=Color.Gray,fontSize=10.sp)
  }
 }
-@Composable private fun SettingsScreen(lang:String,setLang:(String)->Unit,city:String,setCity:(String)->Unit,method:String,setMethod:(String)->Unit,hanafi:Boolean,setHanafi:(Boolean)->Unit,offs:Map<String,Int>,setOffs:(Map<String,Int>)->Unit,modes:Map<String,String>,setModes:(Map<String,String>)->Unit,permissions:()->Unit,developer:()->Unit,bug:()->Unit,sourceCode:()->Unit,pickAudio:()->Unit,clearAudio:()->Unit,customAudio:String?){
+@Composable private fun SettingsScreen(lang:String,setLang:(String)->Unit,city:String,setCity:(String)->Unit,method:String,setMethod:(String)->Unit,hanafi:Boolean,setHanafi:(Boolean)->Unit,offs:Map<String,Int>,setOffs:(Map<String,Int>)->Unit,modes:Map<String,String>,setModes:(Map<String,String>)->Unit,permissions:()->Unit,developer:()->Unit,bug:()->Unit,sourceCode:()->Unit,pickAudio:()->Unit,clearAudio:()->Unit,customAudio:String?,adhanVoice:String,setAdhanVoice:(String)->Unit){
  val ctx=androidx.compose.ui.platform.LocalContext.current
  val ar=lang=="ar"; Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(16.dp),verticalArrangement=Arrangement.spacedBy(10.dp)){
   Text(if(ar)"الإعدادات" else "Settings",fontSize=26.sp,fontWeight=FontWeight.Bold)
@@ -120,6 +122,7 @@ class MainActivity:ComponentActivity(){
   Card(colors=CardDefaults.cardColors(containerColor=Panel)){Column(Modifier.padding(14.dp)){Text(if(ar)"حساب العصر" else "Asr method");Row(verticalAlignment=Alignment.CenterVertically){RadioButton(!hanafi,{setHanafi(false)});Text(if(ar)"قياسي" else "Standard")};Row(verticalAlignment=Alignment.CenterVertically){RadioButton(hanafi,{setHanafi(true)});Text(if(ar)"حنفي" else "Hanafi")}}}
   Text(if(ar)"تعديل المواقيت بالدقائق" else "Minute adjustments",color=Blue,fontWeight=FontWeight.Bold)
   keys.forEach{k->Card(colors=CardDefaults.cardColors(containerColor=Panel)){Row(Modifier.fillMaxWidth().padding(10.dp),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.SpaceBetween){Text(if(ar)arNames[k]!! else enNames[k]!!);TextButton(onClick={setOffs(offs+(k to ((offs[k]?:0)-1)))}){Text("−")};Text((offs[k]?:0).toString(),color=Blue);TextButton(onClick={setOffs(offs+(k to ((offs[k]?:0)+1)))}){Text("+")}}}}
+  Card(colors=CardDefaults.cardColors(containerColor=Panel)){Column(Modifier.fillMaxWidth().padding(14.dp),verticalArrangement=Arrangement.spacedBy(8.dp)){Text(if(ar)"اختيار صوت المؤذن" else "Choose Adhan voice",color=Blue,fontWeight=FontWeight.Bold);Text(if(ar)"كل التسجيلات مضبوطة على مستوى صوت متوازن وواضح. اختر الصوت ثم اضغط تجربة." else "Recordings are loudness-normalized for clear, balanced playback. Select a voice, then tap Test.",color=Color.LightGray,fontSize=12.sp);adhanVoices.forEach{voice->Row(Modifier.fillMaxWidth().clickable{setAdhanVoice(voice.id)},verticalAlignment=Alignment.CenterVertically){RadioButton(selected=adhanVoice==voice.id,onClick={setAdhanVoice(voice.id)});Column{Text(if(ar)voice.ar else voice.en,color=Color.White,fontWeight=FontWeight.SemiBold);Text(voice.note,color=Color.Gray,fontSize=10.sp)}}};OutlinedButton(onClick={val test=Intent(ctx,PrayerAlarmReceiver::class.java).setAction("com.zine.prayer.TEST").putExtra("prayer","fajr");ctx.sendBroadcast(test)},modifier=Modifier.fillMaxWidth()){Text(if(ar)"تجربة الصوت المختار" else "Test selected voice")}}}
   Card(colors=CardDefaults.cardColors(containerColor=Panel)){Column(Modifier.fillMaxWidth().padding(14.dp),verticalArrangement=Arrangement.spacedBy(8.dp)){Text(if(ar)"ملف أذان مخصص" else "Custom Adhan audio",color=Blue,fontWeight=FontWeight.Bold);Text(if(customAudio!=null)if(ar)"تم اختيار ملف صوتي خاص بك" else "Your custom audio file is selected" else if(ar)"سيستخدم التطبيق صوت الأذان المرفق." else "The bundled Adhan will be used.",color=Color.LightGray,fontSize=12.sp);Button(onClick=pickAudio,modifier=Modifier.fillMaxWidth()){Text(if(ar)"اختيار ملف صوتي (MP3 / M4A / OGG)" else "Choose audio file (MP3 / M4A / OGG)")};if(customAudio!=null)OutlinedButton(onClick=clearAudio,modifier=Modifier.fillMaxWidth()){Text(if(ar)"العودة للصوت الأصلي" else "Use bundled Adhan")}}}
   Text(if(ar)"تنبيه كل صلاة" else "Prayer notifications",color=Blue,fontWeight=FontWeight.Bold)
   Text(if(ar)"اختر الأذان الكامل أو نغمة إشعار أو الصامت أو إيقاف التنبيه. استخدم تجربة للتأكد من الصوت." else "Choose full Adhan, a short notification tone, silent, or off. Use Test to verify.",color=Color.LightGray,fontSize=12.sp)
