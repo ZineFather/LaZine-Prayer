@@ -33,6 +33,7 @@ class AdhanPlaybackService : Service() {
         try {
             val prefs = getSharedPreferences("lenzin_prayer_settings", MODE_PRIVATE)
             val customUri = prefs.getString("custom_adhan_uri", null)
+            val selectedVoice = prefs.getString("adhan_voice", "adam") ?: "adam"
             val attributes = AudioAttributes.Builder()
                 .setUsage(AudioAttributes.USAGE_ALARM)
                 .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
@@ -47,7 +48,8 @@ class AdhanPlaybackService : Service() {
             if (customUri != null) {
                 media.setDataSource(this, Uri.parse(customUri))
             } else {
-                val afd = resources.openRawResourceFd(R.raw.adhan)
+                val audioRes = when (selectedVoice) { "sabah" -> R.raw.adhan_sabah; "aishatu" -> R.raw.adhan_aishatu; else -> R.raw.adhan }
+                val afd = resources.openRawResourceFd(audioRes)
                 media.setDataSource(afd.fileDescriptor, afd.startOffset, afd.length)
                 afd.close()
             }
