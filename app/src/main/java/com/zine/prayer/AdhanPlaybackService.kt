@@ -7,7 +7,7 @@ import android.app.PendingIntent
 import android.app.Service
 import android.content.Intent
 import android.media.AudioAttributes
-import android.media.MediaPlayer
+import android.media.MediaPlayer\nimport android.net.Uri
 import android.os.Build
 import android.os.IBinder
 
@@ -30,21 +30,28 @@ class AdhanPlaybackService : Service() {
 
         stopPlayerOnly()
         try {
+            val prefs = getSharedPreferences("lenzin_prayer_settings", MODE_PRIVATE)
+            val customUri = prefs.getString("custom_adhan_uri", null)
             val attributes = AudioAttributes.Builder()
                 .setUsage(AudioAttributes.USAGE_ALARM)
                 .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
                 .build()
-            player = MediaPlayer.create(this, R.raw.adhan, attributes, 0)?.apply {
-                setVolume(1.0f, 1.0f)
-                isLooping = false
-                setOnCompletionListener { stopPlayback() }
-                setOnErrorListener { _, _, _ ->
-                    stopPlayback()
-                    true
-                }
-                start()
+            val media = MediaPlayer()
+            player = media
+            media.setAudioAttributes(attributes)
+            media.setVolume(1.0f, 1.0f)
+            media.isLooping = false
+            media.setOnCompletionListener { stopPlayback() }
+            media.setOnErrorListener { _, _, _ -> stopPlayback(); true }
+            if (customUri != null) {
+                media.setDataSource(this, Uri.parse(customUri))
+            } else {
+                val afd = resources.openRawResourceFd(R.raw.adhan)
+                media.setDataSource(afd.fileDescriptor, afd.startOffset, afd.length)
+                afd.close()
             }
-            if (player == null) stopPlayback()
+            media.setOnPreparedListener { mp -> if (player === mp) mp.start() }
+            media.prepareAsync()
         } catch (_: Exception) {
             stopPlayback()
         }
