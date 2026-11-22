@@ -10,6 +10,9 @@ import android.provider.Settings
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Image
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -54,19 +57,22 @@ class MainActivity:ComponentActivity(){
  var tick by remember{mutableLongStateOf(System.currentTimeMillis())}
  LaunchedEffect(Unit){while(true){tick=System.currentTimeMillis();delay(1000)}}
  LaunchedEffect(lang,cityId,method,hanafi,offsets,modes){val e=pref.edit().putString("lang",lang).putString("city",cityId).putString("method",method).putBoolean("hanafi",hanafi);offsets.forEach{(k,v)->e.putInt("off_"+k,v)};modes.forEach{(k,v)->e.putString("mode_"+k,v)};e.apply()}
- val city=cityList.first{it.id==cityId}; val zone=ZoneId.of(city.zone); val date=Instant.ofEpochMilli(tick).atZone(zone).toLocalDate()
+ val city=cityList.first{it.id==cityId}; val zone=ZoneId.of(city.zone); val now=Instant.ofEpochMilli(tick); val clock=now.atZone(zone); val date=clock.toLocalDate()
  val times=remember(date,city,hanafi,offsets,method){PrayerCalculator.calculate(date,city.lat,city.lon,zone,hanafi,offsets,method)}
- val clock=Instant.ofEpochMilli(tick).atZone(zone); val mins=clock.hour*60.0+clock.minute+clock.second/60.0
- val next=times.entries().filter{it.first!="sunrise"}.firstOrNull{it.second>mins}?:("fajr" to times.fajr+1440)
- val remain=((next.second-mins)*60).toLong().coerceAtLeast(0); val hijri=runCatching{HijrahDate.from(date).toString()}.getOrDefault("")
- LaunchedEffect(times,date,modes,city,hanafi,offsets,method){scheduleAlarms(ctx,times,date,modes,city.zone);val tomorrow=date.plusDays(1);val nextTimes=PrayerCalculator.calculate(tomorrow,city.lat,city.lon,zone,hanafi,offsets,method);scheduleAlarms(ctx,nextTimes,tomorrow,modes,city.zone)}
+ val tomorrow=date.plusDays(1)
+ val tomorrowTimes=remember(tomorrow,city,hanafi,offsets,method){PrayerCalculator.calculate(tomorrow,city.lat,city.lon,zone,hanafi,offsets,method)}
+ val upcoming=(listOf(date to times,tomorrow to tomorrowTimes)).flatMap{(day,pt)->pt.entries().filter{it.first in keys}.map{(key,hour)->Triple(key,day.atStartOfDay(zone).plusNanos((hour*3_600_000_000_000.0).toLong()),hour)}}.filter{it.second.toInstant().isAfter(now)}.minByOrNull{it.second.toInstant()}!!
+ val nextName=upcoming.first
+ val remain=Duration.between(now,upcoming.second.toInstant()).seconds.coerceAtLeast(0)
+ val hijri=runCatching{HijrahDate.from(date).toString()}.getOrDefault("")
+ LaunchedEffect(times,date,modes,city,hanafi,offsets,method){reschedulePrayerAlarms(ctx)}
  Column(Modifier.fillMaxSize().background(Black)){
-  Row(Modifier.fillMaxWidth().padding(18.dp),horizontalArrangement=Arrangement.SpaceBetween,verticalAlignment=Alignment.CenterVertically){
-   Column{Text("Lenzin Prayer",fontSize=24.sp,fontWeight=FontWeight.Bold);Text(if(lang=="ar")"مواقيت الصلاة بدون إنترنت" else "Offline prayer times",color=Color.Gray,fontSize=11.sp)}
-   Box(Modifier.size(42.dp).clip(CircleShape).background(Panel),contentAlignment=Alignment.Center){Text("L",color=Blue,fontSize=24.sp,fontWeight=FontWeight.Black)}
+  Row(Modifier.fillMaxWidth().padding(horizontal=18.dp, vertical=12.dp),horizontalArrangement=Arrangement.SpaceBetween,verticalAlignment=Alignment.CenterVertically){
+   Column{Text("Lenzin Prayer",fontSize=23.sp,fontWeight=FontWeight.Bold,color=Color.White);Text(if(lang=="ar")"مواقيت الصلاة بدون إنترنت" else "Offline prayer times",color=Color.LightGray,fontSize=12.sp)}
+   TextButton(onClick={page=1}){Text("⚙  "+if(lang=="ar")"الإعدادات" else "Settings",color=Blue,fontSize=15.sp)}
   }
   when(page){
-   0->Home(lang,city,date,hijri,times,next.first,remain)
+   0->Home(lang,city,date,hijri,times,nextName,remain)
    1->SettingsScreen(lang,{lang=it},cityId,{cityId=it},method,{method=it},hanafi,{hanafi=it},offsets,{offsets=it},modes,{modes=it},
     {if(Build.VERSION.SDK_INT>=31)runCatching{ctx.startActivity(Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))};if(Build.VERSION.SDK_INT>=33)runCatching{ctx.startActivity(Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).putExtra(Settings.EXTRA_APP_PACKAGE,ctx.packageName).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))}},
     {page=2},{open(BUG)})
@@ -80,7 +86,7 @@ class MainActivity:ComponentActivity(){
  val ar=lang=="ar"; Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(16.dp),verticalArrangement=Arrangement.spacedBy(12.dp)){
   Card(colors=CardDefaults.cardColors(containerColor=Color(0xFF101D2E)),shape=RoundedCornerShape(24.dp),modifier=Modifier.fillMaxWidth()){
    Column(Modifier.fillMaxWidth().padding(20.dp),horizontalAlignment=Alignment.CenterHorizontally){
-    Text(if(ar)city.ar else city.en,color=Blue);Text(if(ar)"مواقيت الصلاة" else "Prayer times",fontSize=25.sp,fontWeight=FontWeight.Bold)
+    Text(if(ar)city.ar else city.en,color=Blue);Text(if(ar)"مواقيت الصلاة" else "Prayer times",fontSize=25.sp,fontWeight=FontWeight.Bold,color=Color.White)
     Text(date.format(DateTimeFormatter.ofPattern("EEEE d MMMM yyyy",if(ar)Locale("ar") else Locale.ENGLISH)),color=Color.LightGray,fontSize=12.sp)
     Text(if(ar)"التاريخ الهجري: "+hijri else "Hijri: "+hijri,color=Color.Gray,fontSize=11.sp)
     Spacer(Modifier.height(10.dp));Text(if(ar)"الصلاة القادمة: "+(arNames[next]?:next) else "Next prayer: "+(enNames[next]?:next),color=Blue)
@@ -89,7 +95,7 @@ class MainActivity:ComponentActivity(){
    }
   }
   Text(if(ar)"مواقيت اليوم" else "TODAY",color=Blue,fontSize=11.sp,fontWeight=FontWeight.Bold)
-  t.entries().forEach{(k,v)->Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(16.dp)).background(if(k==next)Color(0xFF14243A) else Panel).padding(17.dp),horizontalArrangement=Arrangement.SpaceBetween){Text(if(ar)arNames[k]?:k else enNames[k]?:k,fontWeight=if(k==next)FontWeight.Bold else FontWeight.Normal);Text(PrayerCalculator.format(v,lang),color=Blue,fontWeight=FontWeight.Bold)}}
+  t.entries().forEach{(k,v)->Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(16.dp)).background(if(k==next)Color(0xFF14243A) else Panel).padding(17.dp),horizontalArrangement=Arrangement.SpaceBetween){Text(if(ar)arNames[k]?:k else enNames[k]?:k,fontWeight=if(k==next)FontWeight.Bold else FontWeight.Normal,color=Color.White);Text(PrayerCalculator.format(v,lang),color=Blue,fontWeight=FontWeight.Bold)}}
   Text(if(ar)"الحساب محلي وفق زوايا الهيئة المصرية للمساحة: الفجر 19.5° والعشاء 17.5°." else "Local calculation: Egyptian convention (Fajr 19.5°, Isha 17.5°).",color=Color.Gray,fontSize=10.sp)
  }
 }
@@ -103,6 +109,7 @@ class MainActivity:ComponentActivity(){
   Text(if(ar)"تعديل المواقيت بالدقائق" else "Minute adjustments",color=Blue,fontWeight=FontWeight.Bold)
   keys.forEach{k->Card(colors=CardDefaults.cardColors(containerColor=Panel)){Row(Modifier.fillMaxWidth().padding(10.dp),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.SpaceBetween){Text(if(ar)arNames[k]!! else enNames[k]!!);TextButton(onClick={setOffs(offs+(k to ((offs[k]?:0)-1)))}){Text("−")};Text((offs[k]?:0).toString(),color=Blue);TextButton(onClick={setOffs(offs+(k to ((offs[k]?:0)+1)))}){Text("+")}}}}
   Text(if(ar)"تنبيه كل صلاة" else "Prayer notifications",color=Blue,fontWeight=FontWeight.Bold)
+  Text(if(ar)"اختر الأذان الكامل أو نغمة إشعار أو الصامت أو إيقاف التنبيه. استخدم تجربة للتأكد من الصوت." else "Choose full Adhan, a short notification tone, silent, or off. Use Test to verify.",color=Color.LightGray,fontSize=12.sp)
   keys.forEach{k->var expanded by remember(k){mutableStateOf(false)};Card(colors=CardDefaults.cardColors(containerColor=Panel)){Column(Modifier.padding(12.dp)){Text(if(ar)arNames[k]!! else enNames[k]!!);Box{OutlinedButton(onClick={expanded=true}){Text(modes[k]?: "NOTIFICATION")};DropdownMenu(expanded,{expanded=false}){listOf("ADHAN","NOTIFICATION","SILENT","OFF").forEach{v->DropdownMenuItem(text={Text(v)},onClick={setModes(modes+(k to v));expanded=false})}}};if(modes[k]=="ADHAN")Text(if(ar)"تنبيه النظام حاليًا؛ صوت أذان مخصص غير مرفق بعد." else "System alert tone for now; custom adhan audio is not bundled.",color=Color.Gray,fontSize=10.sp)}}}
   Button(onClick=permissions,modifier=Modifier.fillMaxWidth()){Text(if(ar)"إدارة أذونات الإشعارات والمنبهات" else "Notification & alarm permissions")}
   OutlinedButton(onClick=developer,modifier=Modifier.fillMaxWidth()){Text(if(ar)"About Developer • عن المطور" else "About Developer")}
@@ -111,9 +118,9 @@ class MainActivity:ComponentActivity(){
 }
 @Composable private fun Developer(lang:String,back:()->Unit,telegram:()->Unit,bug:()->Unit){
  val ar=lang=="ar";Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(20.dp),horizontalAlignment=Alignment.CenterHorizontally,verticalArrangement=Arrangement.spacedBy(14.dp)){
-  TextButton(onClick=back){Text(if(ar)"رجوع" else "Back")};Box(Modifier.size(124.dp).clip(CircleShape).background(Color(0xFF14243A)),contentAlignment=Alignment.Center){Text("ZF",fontSize=42.sp,color=Blue,fontWeight=FontWeight.Bold)}
-  Text("ZineFather",fontSize=28.sp,fontWeight=FontWeight.Bold);Text("@ZineFather",color=Blue)
-  Card(colors=CardDefaults.cardColors(containerColor=Panel)){Column(Modifier.padding(18.dp)){Text(if(ar)"عن المطور" else "About Developer",color=Blue,fontWeight=FontWeight.Bold);Text(if(ar)"مطور رومات أندرويد ومؤسس مشروع ZineROM، يعمل على تطوير برمجيات أجهزة Samsung والرومات المخصصة وأدوات أندرويد والمواقع والتطبيقات، ويشارك في مشاريع ومجتمعات تقنية مستقلة." else "Android ROM developer and creator of ZineROM, focused on Samsung software, custom ROMs, Android tools, websites and applications, and independent developer communities.")}}
+  TextButton(onClick=back){Text(if(ar)"رجوع" else "Back")};Image(painter=painterResource(id=R.drawable.zinefather),contentDescription="ZineFather developer profile",modifier=Modifier.size(132.dp).clip(CircleShape),contentScale=ContentScale.Crop)
+  Text("ZineFather",fontSize=28.sp,fontWeight=FontWeight.Bold,color=Color.White);Text("@ZineFather",color=Blue)
+  Card(colors=CardDefaults.cardColors(containerColor=Panel)){Column(Modifier.padding(18.dp)){Text(if(ar)"عن المطور" else "About Developer",color=Blue,fontWeight=FontWeight.Bold);Text(if(ar)"مطور رومات أندرويد ومؤسس ZineROM، يعمل على تطوير رومات Samsung وأدوات أندرويد ومواقع وتطبيقات، ويساهم في مشاريع برمجية ومجتمعات تقنية. للتواصل والدعم أو الإبلاغ عن الأخطاء استخدم الروابط أدناه." else "Android ROM developer and founder of ZineROM, working on Samsung custom ROMs, Android tools, websites and applications, and contributing to software projects and developer communities. Use the links below for support or bug reports.")}}
   Button(onClick=telegram,modifier=Modifier.fillMaxWidth()){Text("Telegram @ZineFather")};OutlinedButton(onClick=bug,modifier=Modifier.fillMaxWidth()){Text(if(ar)"الإبلاغ عن مشكلة" else "Report a bug")}
  }
 }
