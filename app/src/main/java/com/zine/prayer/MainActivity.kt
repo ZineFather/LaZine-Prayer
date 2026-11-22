@@ -58,9 +58,13 @@ class MainActivity:ComponentActivity(){
  var page by remember{mutableStateOf(0)}; var lang by remember{mutableStateOf(pref.getString("lang","ar")?:"ar")}
  var cityId by remember{mutableStateOf(pref.getString("city","alex")?:"alex")}; var method by remember{mutableStateOf(pref.getString("method","egypt")?:"egypt")}; var hanafi by remember{mutableStateOf(pref.getBoolean("hanafi",false))}
  var offsets by remember{mutableStateOf(keys.associateWith{pref.getInt("off_"+it,0)})}
- var modes by remember{mutableStateOf(keys.associateWith{pref.getString("mode_"+it,"ADHAN")?:"ADHAN"})}
+ var modes by remember{mutableStateOf(keys.associateWith{
+  val saved=pref.getString("mode_"+it,null)
+  if(!pref.getBoolean("mode_v3_migrated",false) && saved=="NOTIFICATION") "ADHAN" else (saved?:"ADHAN")
+ })}
  var tick by remember{mutableLongStateOf(System.currentTimeMillis())}
  LaunchedEffect(Unit){while(true){tick=System.currentTimeMillis();delay(1000)}}
+ LaunchedEffect(Unit){if(!pref.getBoolean("mode_v3_migrated",false))pref.edit().putBoolean("mode_v3_migrated",true).apply()}
  LaunchedEffect(lang,cityId,method,hanafi,offsets,modes){val e=pref.edit().putString("lang",lang).putString("city",cityId).putString("method",method).putBoolean("hanafi",hanafi);offsets.forEach{(k,v)->e.putInt("off_"+k,v)};modes.forEach{(k,v)->e.putString("mode_"+k,v)};e.apply()}
  val city=cityList.first{it.id==cityId}; val zone=ZoneId.of(city.zone); val now=Instant.ofEpochMilli(tick); val clock=now.atZone(zone); val date=clock.toLocalDate()
  val times=remember(date,city,hanafi,offsets,method){PrayerCalculator.calculate(date,city.lat,city.lon,zone,hanafi,offsets,method)}
@@ -138,8 +142,10 @@ private fun createChannel(c:Context){if(Build.VERSION.SDK_INT>=26){val nm=c.getS
  alarm.setSound(null,null);alarm.enableVibration(false)
  val normal=NotificationChannel("prayer_alerts_v2","Prayer notification sound",NotificationManager.IMPORTANCE_HIGH)
  normal.description="Normal Android notification sound at prayer time"
+ normal.setSound(android.media.RingtoneManager.getDefaultUri(android.media.RingtoneManager.TYPE_NOTIFICATION),android.media.AudioAttributes.Builder().setUsage(android.media.AudioAttributes.USAGE_NOTIFICATION).build())
  val short=NotificationChannel("prayer_short_v2","Short prayer tone",NotificationManager.IMPORTANCE_HIGH)
  short.description="Short Android notification tone at prayer time"
+ short.setSound(android.media.RingtoneManager.getDefaultUri(android.media.RingtoneManager.TYPE_NOTIFICATION),android.media.AudioAttributes.Builder().setUsage(android.media.AudioAttributes.USAGE_NOTIFICATION).build())
  val silent=NotificationChannel("prayer_silent_v2","Silent prayer notifications",NotificationManager.IMPORTANCE_LOW);silent.setSound(null,null);silent.enableVibration(false)
  nm.createNotificationChannel(alarm);nm.createNotificationChannel(normal);nm.createNotificationChannel(short);nm.createNotificationChannel(silent)}}
 internal fun scheduleAlarms(c:Context,t:PrayerTimes,d:LocalDate,modes:Map<String,String>,zoneName:String){val am=c.getSystemService(AlarmManager::class.java);val zone=ZoneId.of(zoneName);val now=System.currentTimeMillis();t.entries().filter{it.first in keys}.forEach{(k,v)->if(modes[k]=="OFF")return@forEach;val at=d.atStartOfDay(zone).toEpochSecond()*1000+(v*3600000.0).toLong();if(at<=now)return@forEach;val i=Intent(c,PrayerAlarmReceiver::class.java).putExtra("prayer",k);val pi=PendingIntent.getBroadcast(c,d.toEpochDay().toInt()*10+keys.indexOf(k)+1,i,PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE);runCatching{if(Build.VERSION.SDK_INT>=31&&!am.canScheduleExactAlarms())am.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP,at,pi) else am.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP,at,pi)}}}
