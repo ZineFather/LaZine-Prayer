@@ -6,7 +6,7 @@ class PrayerAlarmReceiver:BroadcastReceiver(){
  override fun onReceive(context:Context,intent:Intent){
   val key=intent.getStringExtra("prayer")?:return
   if(intent.action=="com.zine.prayer.STOP_ADHAN"){
-   context.stopService(Intent(context,AdhanPlaybackService::class.java))
+   context.startService(Intent(context,AdhanPlaybackService::class.java).setAction(AdhanPlaybackService.ACTION_STOP))
    context.getSystemService(NotificationManager::class.java).cancel(8100)
    context.getSystemService(NotificationManager::class.java).cancel(key.hashCode())
    return
@@ -24,14 +24,10 @@ class PrayerAlarmReceiver:BroadcastReceiver(){
   }
   val channel=when(mode){"SHORT"->"prayer_short_v2";"SILENT"->"prayer_silent_v2";else->"prayer_alerts_v2"}
   val open=PendingIntent.getActivity(context,0,Intent(context,MainActivity::class.java),PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
-  val stopIntent=Intent(context,PrayerAlarmReceiver::class.java).setAction("com.zine.prayer.STOP_ADHAN").putExtra("prayer",key)
-  val stop=PendingIntent.getBroadcast(context,key.hashCode()+1,stopIntent,PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
-  val stopLabel=if(ar)"إيقاف الأذان" else "Stop Adhan"
-  val builder=if(Build.VERSION.SDK_INT>=26)Notification.Builder(context,channel) else Notification.Builder(context)
+   val builder=if(Build.VERSION.SDK_INT>=26)Notification.Builder(context,channel) else Notification.Builder(context)
   val notification=builder.setSmallIcon(android.R.drawable.ic_lock_idle_alarm)
    .setContentTitle(title).setContentText(if(ar)"Lenzin Prayer • مواقيت الصلاة" else "Lenzin Prayer • Prayer time")
-   .setContentIntent(open).addAction(android.R.drawable.ic_media_pause,stopLabel,stop)
-   .setAutoCancel(false).setCategory(Notification.CATEGORY_ALARM).build()
+   .setContentIntent(open).setAutoCancel(true).setCategory(Notification.CATEGORY_ALARM).build()
   context.getSystemService(NotificationManager::class.java).notify(key.hashCode(),notification)
  }
 }
