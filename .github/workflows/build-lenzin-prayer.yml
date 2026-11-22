@@ -24,7 +24,11 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y ffmpeg
           ffmpeg -y -i app/src/main/res/raw/adhan-source.ogg -af "loudnorm=I=-16:TP=-1.5:LRA=11" -c:a libvorbis -q:a 6 app/src/main/res/raw/adhan.ogg
-          rm app/src/main/res/raw/adhan-source.ogg
+          curl -L --fail --retry 3 "https://commons.wikimedia.org/wiki/Special:Redirect/file/Call_to_prayer_by_Sabah_Fakhry.mp3" -o app/src/main/res/raw/sabah-source.mp3
+          curl -L --fail --retry 3 "https://commons.wikimedia.org/wiki/Special:Redirect/file/Adhan.ogg" -o app/src/main/res/raw/aishatu-source.ogg
+          ffmpeg -y -i app/src/main/res/raw/sabah-source.mp3 -af "loudnorm=I=-16:TP=-1.5:LRA=11" -c:a libvorbis -q:a 6 app/src/main/res/raw/adhan_sabah.ogg
+          ffmpeg -y -i app/src/main/res/raw/aishatu-source.ogg -af "loudnorm=I=-16:TP=-1.5:LRA=11" -c:a libvorbis -q:a 6 app/src/main/res/raw/adhan_aishatu.ogg
+          rm app/src/main/res/raw/adhan-source.ogg app/src/main/res/raw/sabah-source.mp3 app/src/main/res/raw/aishatu-source.ogg
       - name: Add developer profile image
         run: |
           mkdir -p app/src/main/res/drawable-nodpi
