@@ -1,4 +1,4 @@
-name: Build Lenzin Prayer APK
+name: Build LaZine Prayer APK
 on:
   workflow_dispatch:
   push:
@@ -20,7 +20,11 @@ jobs:
       - name: Add CC0 Adhan audio asset
         run: |
           mkdir -p app/src/main/res/raw
-          curl -L --fail --retry 3 "https://upload.wikimedia.org/wikipedia/commons/e/e7/Adhan.ogg" -o app/src/main/res/raw/adhan.ogg
+          curl -L --fail --retry 3 "https://upload.wikimedia.org/wikipedia/commons/b/b0/Beautiful_adhan.ogg" -o app/src/main/res/raw/adhan-source.ogg
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg
+          ffmpeg -y -i app/src/main/res/raw/adhan-source.ogg -af "loudnorm=I=-16:TP=-1.5:LRA=11" -c:a libvorbis -q:a 6 app/src/main/res/raw/adhan.ogg
+          rm app/src/main/res/raw/adhan-source.ogg
       - name: Add developer profile image
         run: |
           mkdir -p app/src/main/res/drawable-nodpi
