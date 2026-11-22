@@ -15,7 +15,7 @@ class PrayerAlarmReceiver:BroadcastReceiver(){
   val ar=prefs.getString("lang","ar")=="ar"
   val names=if(ar)mapOf("fajr" to "الفجر","dhuhr" to "الظهر","asr" to "العصر","maghrib" to "المغرب","isha" to "العشاء") else mapOf("fajr" to "Fajr","dhuhr" to "Dhuhr","asr" to "Asr","maghrib" to "Maghrib","isha" to "Isha")
   val title=if(ar)"حان موعد صلاة ${names[key]?:key}" else "It is time for ${names[key]?:key}"
-  val channel=when(mode){"ADHAN"->"prayer_adhan_v2";"SILENT"->"prayer_silent";else->"prayer_alerts"}
+  val channel=when(mode){"ADHAN"->"prayer_adhan_v2";"SHORT"->"prayer_short";"SILENT"->"prayer_silent";else->"prayer_alerts"}
   val open=PendingIntent.getActivity(context,0,Intent(context,MainActivity::class.java),PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
   val stopIntent=Intent(context,PrayerAlarmReceiver::class.java).setAction("com.zine.prayer.STOP_ADHAN").putExtra("prayer",key)
   val stop=PendingIntent.getBroadcast(context,key.hashCode()+1,stopIntent,PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
