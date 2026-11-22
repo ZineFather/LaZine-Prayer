@@ -22,7 +22,7 @@ internal fun reschedulePrayerAlarms(context:Context){
  val hanafi=prefs.getBoolean("hanafi",false)
  val prayerKeys=listOf("fajr","dhuhr","asr","maghrib","isha")
  val offsets=prayerKeys.associateWith{prefs.getInt("off_"+it,0)}
- val modes=prayerKeys.associateWith{prefs.getString("mode_"+it,"NOTIFICATION")?:"NOTIFICATION"}
+ val modes=prayerKeys.associateWith{prefs.getString("mode_"+it,"ADHAN")?:"ADHAN"}
  val today=LocalDate.now(zone)
  for(day in 0..3){
   val date=today.plusDays(day.toLong())
