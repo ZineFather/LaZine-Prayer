@@ -85,7 +85,7 @@ class MainActivity:ComponentActivity(){
    0->Home(lang,city,date,hijri,times,nextName,remain)
    1->SettingsScreen(lang,{lang=it},cityId,{cityId=it},method,{method=it},hanafi,{hanafi=it},offsets,{offsets=it},modes,{modes=it},
     {if(Build.VERSION.SDK_INT>=31)runCatching{ctx.startActivity(Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))};if(Build.VERSION.SDK_INT>=33)runCatching{ctx.startActivity(Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).putExtra(Settings.EXTRA_APP_PACKAGE,ctx.packageName).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))}},
-    {page=2},{open(BUG)},{audioPicker.launch(arrayOf("audio/*"))},{customAdhanUri=null;pref.edit().remove("custom_adhan_uri").apply()},customAdhanUri)
+    {page=2},{open(BUG)},{open("https://github.com/ZineFather/LaZine-Prayer")},{audioPicker.launch(arrayOf("audio/*"))},{customAdhanUri=null;pref.edit().remove("custom_adhan_uri").apply()},customAdhanUri)
    else->Developer(lang,{page=1},{open(DEV)},{open(BUG)})
   }
   }
@@ -110,7 +110,7 @@ class MainActivity:ComponentActivity(){
   Text(if(ar)"الحساب محلي وفق زوايا الهيئة المصرية للمساحة: الفجر 19.5° والعشاء 17.5°." else "Local calculation: Egyptian convention (Fajr 19.5°, Isha 17.5°).",color=Color.Gray,fontSize=10.sp)
  }
 }
-@Composable private fun SettingsScreen(lang:String,setLang:(String)->Unit,city:String,setCity:(String)->Unit,method:String,setMethod:(String)->Unit,hanafi:Boolean,setHanafi:(Boolean)->Unit,offs:Map<String,Int>,setOffs:(Map<String,Int>)->Unit,modes:Map<String,String>,setModes:(Map<String,String>)->Unit,permissions:()->Unit,developer:()->Unit,bug:()->Unit,pickAudio:()->Unit,clearAudio:()->Unit,customAudio:String?){
+@Composable private fun SettingsScreen(lang:String,setLang:(String)->Unit,city:String,setCity:(String)->Unit,method:String,setMethod:(String)->Unit,hanafi:Boolean,setHanafi:(Boolean)->Unit,offs:Map<String,Int>,setOffs:(Map<String,Int>)->Unit,modes:Map<String,String>,setModes:(Map<String,String>)->Unit,permissions:()->Unit,developer:()->Unit,bug:()->Unit,sourceCode:()->Unit,pickAudio:()->Unit,clearAudio:()->Unit,customAudio:String?){
  val ctx=androidx.compose.ui.platform.LocalContext.current
  val ar=lang=="ar"; Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(16.dp),verticalArrangement=Arrangement.spacedBy(10.dp)){
   Text(if(ar)"الإعدادات" else "Settings",fontSize=26.sp,fontWeight=FontWeight.Bold)
@@ -126,7 +126,7 @@ class MainActivity:ComponentActivity(){
   keys.forEach{k->var expanded by remember(k){mutableStateOf(false)};Card(colors=CardDefaults.cardColors(containerColor=Panel)){Column(Modifier.fillMaxWidth().padding(12.dp),verticalArrangement=Arrangement.spacedBy(8.dp)){Text(if(ar)arNames[k]!! else enNames[k]!!,color=Color.White,fontWeight=FontWeight.SemiBold);Row(verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(8.dp)){Box(Modifier.weight(1f)){OutlinedButton(onClick={expanded=true},modifier=Modifier.fillMaxWidth()){Text(when(modes[k]){"ADHAN"->if(ar)"أذان كامل" else "Full Adhan";"SHORT"->if(ar)"نغمة قصيرة" else "Short tone";"SILENT"->if(ar)"صامت" else "Silent";"OFF"->if(ar)"إيقاف" else "Off";else->if(ar)"إشعار عادي" else "Notification"})};DropdownMenu(expanded,{expanded=false}){listOf("ADHAN","SHORT","NOTIFICATION","SILENT","OFF").forEach{v->DropdownMenuItem(text={Text(when(v){"ADHAN"->if(ar)"أذان كامل" else "Full Adhan";"SHORT"->if(ar)"نغمة قصيرة" else "Short tone";"NOTIFICATION"->if(ar)"إشعار عادي" else "Notification";"SILENT"->if(ar)"صامت" else "Silent";else->if(ar)"إيقاف" else "Off"})},onClick={setModes(modes+(k to v));expanded=false})}}};val test=Intent(ctx,PrayerAlarmReceiver::class.java).setAction("com.zine.prayer.TEST").putExtra("prayer",k);OutlinedButton(onClick={ctx.sendBroadcast(test)}){Text(if(ar)"تجربة" else "Test")}};if(modes[k]=="ADHAN")Text(if(ar)"الأذان يعمل من ملف محلي مرفق داخل التطبيق." else "Adhan plays from an audio file bundled in the app.",color=Color.Gray,fontSize=10.sp)}}}
   Button(onClick=permissions,modifier=Modifier.fillMaxWidth()){Text(if(ar)"إدارة أذونات الإشعارات والمنبهات" else "Notification & alarm permissions")}
   OutlinedButton(onClick=developer,modifier=Modifier.fillMaxWidth()){Text(if(ar)"About Developer • عن المطور" else "About Developer")}
-  OutlinedButton(onClick=bug,modifier=Modifier.fillMaxWidth()){Text(if(ar)"Report a Bug • الإبلاغ عن خطأ" else "Report a bug")}
+  OutlinedButton(onClick=bug,modifier=Modifier.fillMaxWidth()){Text(if(ar)"Report a Bug • الإبلاغ عن خطأ" else "Report a bug")}\n  OutlinedButton(onClick=sourceCode,modifier=Modifier.fillMaxWidth()){Text(if(ar)"Source Code • الكود المصدري على GitHub" else "Source Code • GitHub")}
  }
 }
 @Composable private fun Developer(lang:String,back:()->Unit,telegram:()->Unit,bug:()->Unit){
