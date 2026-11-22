@@ -1,9 +1,9 @@
-# Adhan audio
+# Adhan audio credits
 
-The bundled full-length Adhan recording is **“Beautiful adhan.ogg”** by Adam-synagda, sourced from Wikimedia Commons:
+All bundled recordings are normalized in CI with FFmpeg loudness normalization (target -16 LUFS, true peak -1.5 dBTP). Playback uses the selected local asset and does not require internet.
 
-- Source: https://commons.wikimedia.org/wiki/File:Beautiful_adhan.ogg
-- License: CC0 1.0 (public-domain dedication)
-- Original duration: approximately 2 minutes 34 seconds
+- **Original Adhan — Adam-synagda:** [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Beautiful_adhan.ogg), CC0 1.0.
+- **Sabah Fakhri:** [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Call_to_prayer_by_Sabah_Fakhry.mp3), listed there as a 1985 recording and public-domain mark. Recording is retained with its Commons source attribution.
+- **Aishatu98 Adhan:** [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Adhan.ogg), uploader's own work, CC0 1.0.
 
-The CI build normalizes loudness for more consistent playback and packages the audio locally. No network connection is needed when the app plays the Adhan.
+The app does not claim that the CC0 recordings are by famous named muezzins. Additional famous voices will only be added when the specific recording's reuse rights are clear.
