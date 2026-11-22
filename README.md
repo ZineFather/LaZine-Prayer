@@ -12,7 +12,7 @@ Standalone Android prayer-times application. Kotlin + Jetpack Compose.
 - GitHub Actions builds a debug APK from `main`.
 
 ## Known limitation
-The ADHAN channel currently uses the device's default alarm sound. A recorded Adhan audio file and a foreground playback/stop service are not yet included. Exact-alarm and notification behavior must still be tested on a physical Android 12 device.
+The build workflow bundles a 42-second Adhan recording from Wikimedia Commons under CC0 1.0 (uploader: Aishatu98; source: https://commons.wikimedia.org/wiki/File:Adhan.ogg). The ADHAN notification channel uses this local resource; it does not require runtime internet. The notification includes a stop-sound action. Android notification-channel behavior and full playback duration still require physical-device testing.
 
 ## Build
 `gradle :app:assembleDebug`
