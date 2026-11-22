@@ -42,7 +42,7 @@ class MainActivity:ComponentActivity(){
  private val permission=registerForActivityResult(ActivityResultContracts.RequestPermission()){}
  override fun onCreate(savedInstanceState:Bundle?){super.onCreate(savedInstanceState); createChannel(this)
   if(Build.VERSION.SDK_INT>=33 && ContextCompat.checkSelfPermission(this,Manifest.permission.POST_NOTIFICATIONS)!=PackageManager.PERMISSION_GRANTED) permission.launch(Manifest.permission.POST_NOTIFICATIONS)
-  setContent { MaterialTheme(colorScheme=darkColorScheme(primary=Blue,background=Black,surface=Panel,onSurface=Color.White,onBackground=Color.White)){ App { url->runCatching{startActivity(Intent(Intent.ACTION_VIEW,Uri.parse(url))) } } } }
+  setContent { MaterialTheme(colorScheme=darkColorScheme(primary=Blue,background=Black,surface=Panel,onSurface=Color.White,onBackground=Color.White)){ Surface(color=Black,contentColor=Color.White,modifier=Modifier.fillMaxSize()){ App { url->runCatching{startActivity(Intent(Intent.ACTION_VIEW,Uri.parse(url))) } } } } }
  }
 }
 @Composable private fun App(open:(String)->Unit){
