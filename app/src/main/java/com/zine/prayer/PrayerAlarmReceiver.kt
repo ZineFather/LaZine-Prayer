@@ -5,8 +5,8 @@ import android.os.Build
 class PrayerAlarmReceiver:BroadcastReceiver(){
  override fun onReceive(context:Context,intent:Intent){
   val key=intent.getStringExtra("prayer")?:return
-  if(intent.action=="com.zine.prayer.STOP_ADHAN"){
-   context.startService(Intent(context,AdhanPlaybackService::class.java).setAction(AdhanPlaybackService.ACTION_STOP))
+  if(intent.action=="com.zine.prayer.STOP_ADHAN" || intent.action=="com.zine.prayer.DISMISS_ADHAN"){
+   if(Build.VERSION.SDK_INT>=26)context.startForegroundService(Intent(context,AdhanPlaybackService::class.java).setAction(AdhanPlaybackService.ACTION_STOP)) else context.startService(Intent(context,AdhanPlaybackService::class.java).setAction(AdhanPlaybackService.ACTION_STOP))
    context.getSystemService(NotificationManager::class.java).cancel(8100)
    context.getSystemService(NotificationManager::class.java).cancel(key.hashCode())
    return
