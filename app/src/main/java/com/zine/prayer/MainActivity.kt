@@ -126,9 +126,13 @@ class MainActivity:ComponentActivity(){
  }
 }
 private fun createChannel(c:Context){if(Build.VERSION.SDK_INT>=26){val nm=c.getSystemService(NotificationManager::class.java)
- val alarm=NotificationChannel("prayer_adhan","Adhan alerts",NotificationManager.IMPORTANCE_HIGH)
- alarm.description="Alarm sound for prayer time";alarm.setSound(android.media.RingtoneManager.getDefaultUri(android.media.RingtoneManager.TYPE_ALARM),android.media.AudioAttributes.Builder().setUsage(android.media.AudioAttributes.USAGE_ALARM).build())
+ val alarm=NotificationChannel("prayer_adhan_v2","Adhan audio",NotificationManager.IMPORTANCE_HIGH)
+ alarm.description="Full offline Adhan audio at prayer time"
+ alarm.setSound(Uri.parse("android.resource://"+c.packageName+"/"+R.raw.adhan),android.media.AudioAttributes.Builder().setUsage(android.media.AudioAttributes.USAGE_ALARM).build())
  val normal=NotificationChannel("prayer_alerts","Prayer notifications",NotificationManager.IMPORTANCE_HIGH)
+ normal.description="Short system notification sound for prayer time"
+ val short=NotificationChannel("prayer_short","Short prayer tone",NotificationManager.IMPORTANCE_HIGH)
+ short.description="Short system notification tone"
  val silent=NotificationChannel("prayer_silent","Silent prayer notifications",NotificationManager.IMPORTANCE_LOW);silent.setSound(null,null);silent.enableVibration(false)
- nm.createNotificationChannel(alarm);nm.createNotificationChannel(normal);nm.createNotificationChannel(silent)}}
+ nm.createNotificationChannel(alarm);nm.createNotificationChannel(normal);nm.createNotificationChannel(short);nm.createNotificationChannel(silent)}}
 internal fun scheduleAlarms(c:Context,t:PrayerTimes,d:LocalDate,modes:Map<String,String>,zoneName:String){val am=c.getSystemService(AlarmManager::class.java);val zone=ZoneId.of(zoneName);val now=System.currentTimeMillis();t.entries().filter{it.first in keys}.forEach{(k,v)->if(modes[k]=="OFF")return@forEach;val at=d.atStartOfDay(zone).toEpochSecond()*1000+(v*3600000.0).toLong();if(at<=now)return@forEach;val i=Intent(c,PrayerAlarmReceiver::class.java).putExtra("prayer",k);val pi=PendingIntent.getBroadcast(c,d.toEpochDay().toInt()*7+k.hashCode(),i,PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE);runCatching{if(Build.VERSION.SDK_INT>=31&&!am.canScheduleExactAlarms())am.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP,at,pi) else am.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP,at,pi)}}}
