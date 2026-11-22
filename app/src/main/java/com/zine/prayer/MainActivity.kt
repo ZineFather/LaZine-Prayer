@@ -9,6 +9,7 @@ import android.os.Bundle
 import android.provider.Settings
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.compose.BackHandler
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
@@ -43,7 +44,7 @@ import kotlinx.coroutines.delay
 private val Black=Color(0xFF050609); private val Panel=Color(0xFF111722); private val Blue=Color(0xFF83BFFF)
 private const val PREF="lenzin_prayer_settings"; private const val BUG="https://t.me/ZineROMProject/9"; private const val DEV="https://t.me/ZineFather"
 private data class AdhanVoice(val id:String,val ar:String,val en:String,val note:String)
-private val adhanVoices=listOf(AdhanVoice("adam","الأذان الأساسي","Original Adhan","Adam-synagda • CC0"),AdhanVoice("sabah","صباح فخري","Sabah Fakhri","Public-domain recording • 1985"),AdhanVoice("aishatu","أذان بصوت Aishatu98","Aishatu98 Adhan","CC0 recording"))
+private val adhanVoices=listOf(AdhanVoice("adam","الأذان الأساسي","Original Adhan","Adam-synagda • CC0"),AdhanVoice("sabah","صباح فخري","Sabah Fakhri","Public-domain recording • 1985"),AdhanVoice("aishatu","أذان بصوت Aishatu98","Aishatu98 Adhan","CC0 • 42 seconds"),AdhanVoice("aishatu_long","أذان طويل بصوت Aishatu98","Extended Adhan • Aishatu98","CC0 • 1 minute 42 seconds"))
 private data class City(val id:String,val ar:String,val en:String,val lat:Double,val lon:Double,val zone:String="Africa/Cairo")
 private val cityList=listOf(City("alex","الإسكندرية","Alexandria",31.2001,29.9187),City("cairo","القاهرة","Cairo",30.0444,31.2357),City("mecca","مكة المكرمة","Makkah",21.4225,39.8262,"Asia/Riyadh"))
 private val keys=listOf("fajr","dhuhr","asr","maghrib","isha")
@@ -66,7 +67,7 @@ class MainActivity:ComponentActivity(){
   if(!pref.getBoolean("mode_v3_migrated",false) && saved=="NOTIFICATION") "ADHAN" else (saved?:"ADHAN")
  })}
  var tick by remember{mutableLongStateOf(System.currentTimeMillis())}
- LaunchedEffect(Unit){while(true){tick=System.currentTimeMillis();delay(1000)}}
+ BackHandler(enabled=page!=0){page=if(page==2)1 else 0}\n LaunchedEffect(Unit){while(true){tick=System.currentTimeMillis();delay(1000)}}
  LaunchedEffect(Unit){if(!pref.getBoolean("mode_v3_migrated",false))pref.edit().putBoolean("mode_v3_migrated",true).apply()}
  LaunchedEffect(lang,cityId,method,hanafi,offsets,modes,adhanVoice){val e=pref.edit().putString("adhan_voice",adhanVoice).putString("lang",lang).putString("city",cityId).putString("method",method).putBoolean("hanafi",hanafi);offsets.forEach{(k,v)->e.putInt("off_"+k,v)};modes.forEach{(k,v)->e.putString("mode_"+k,v)};e.apply()}
  val city=cityList.first{it.id==cityId}; val zone=ZoneId.of(city.zone); val now=Instant.ofEpochMilli(tick); val clock=now.atZone(zone); val date=clock.toLocalDate()
@@ -88,7 +89,7 @@ class MainActivity:ComponentActivity(){
    0->Home(lang,city,date,hijri,times,nextName,remain)
    1->SettingsScreen(lang,{lang=it},cityId,{cityId=it},method,{method=it},hanafi,{hanafi=it},offsets,{offsets=it},modes,{modes=it},
     {if(Build.VERSION.SDK_INT>=31)runCatching{ctx.startActivity(Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))};if(Build.VERSION.SDK_INT>=33)runCatching{ctx.startActivity(Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).putExtra(Settings.EXTRA_APP_PACKAGE,ctx.packageName).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))}},
-    {page=2},{open(BUG)},{open("https://github.com/ZineFather/LaZine-Prayer")},{audioPicker.launch(arrayOf("audio/*"))},{customAdhanUri=null;pref.edit().remove("custom_adhan_uri").apply()},customAdhanUri,adhanVoice,{adhanVoice=it})
+    {page=2},{open(BUG)},{open("https://github.com/ZineFather/LaZine-Prayer")},{audioPicker.launch(arrayOf("audio/*"))},{customAdhanUri=null;pref.edit().remove("custom_adhan_uri").apply()},customAdhanUri,adhanVoice,{adhanVoice=it},{page=0})
    else->Developer(lang,{page=1},{open(DEV)},{open(BUG)})
   }
   }
@@ -113,10 +114,10 @@ class MainActivity:ComponentActivity(){
   Text(if(ar)"الحساب محلي وفق زوايا الهيئة المصرية للمساحة: الفجر 19.5° والعشاء 17.5°." else "Local calculation: Egyptian convention (Fajr 19.5°, Isha 17.5°).",color=Color.Gray,fontSize=10.sp)
  }
 }
-@Composable private fun SettingsScreen(lang:String,setLang:(String)->Unit,city:String,setCity:(String)->Unit,method:String,setMethod:(String)->Unit,hanafi:Boolean,setHanafi:(Boolean)->Unit,offs:Map<String,Int>,setOffs:(Map<String,Int>)->Unit,modes:Map<String,String>,setModes:(Map<String,String>)->Unit,permissions:()->Unit,developer:()->Unit,bug:()->Unit,sourceCode:()->Unit,pickAudio:()->Unit,clearAudio:()->Unit,customAudio:String?,adhanVoice:String,setAdhanVoice:(String)->Unit){
+@Composable private fun SettingsScreen(lang:String,setLang:(String)->Unit,city:String,setCity:(String)->Unit,method:String,setMethod:(String)->Unit,hanafi:Boolean,setHanafi:(Boolean)->Unit,offs:Map<String,Int>,setOffs:(Map<String,Int>)->Unit,modes:Map<String,String>,setModes:(Map<String,String>)->Unit,permissions:()->Unit,developer:()->Unit,bug:()->Unit,sourceCode:()->Unit,pickAudio:()->Unit,clearAudio:()->Unit,customAudio:String?,adhanVoice:String,setAdhanVoice:(String)->Unit,developerBack:()->Unit){
  val ctx=androidx.compose.ui.platform.LocalContext.current
  val ar=lang=="ar"; Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(16.dp),verticalArrangement=Arrangement.spacedBy(10.dp)){
-  Text(if(ar)"الإعدادات" else "Settings",fontSize=26.sp,fontWeight=FontWeight.Bold)
+  Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.SpaceBetween,verticalAlignment=Alignment.CenterVertically){Text(if(ar)"الإعدادات" else "Settings",fontSize=26.sp,fontWeight=FontWeight.Bold);TextButton(onClick={developerBack()}){Text(if(ar)"رجوع ‹" else "Back ‹",color=Blue)}}
   Card(colors=CardDefaults.cardColors(containerColor=Panel)){Column(Modifier.padding(14.dp)){Text(if(ar)"اللغة" else "Language");Row{FilterChip(lang=="ar",{setLang("ar")},{Text("العربية")});Spacer(Modifier.width(8.dp));FilterChip(lang=="en",{setLang("en")},{Text("English")})}}}
   Card(colors=CardDefaults.cardColors(containerColor=Panel)){Column(Modifier.padding(14.dp)){Text(if(ar)"المدينة" else "City");cityList.forEach{c->Row(verticalAlignment=Alignment.CenterVertically){RadioButton(city==c.id,{setCity(c.id)});Text(if(ar)c.ar else c.en)}}}}
   Card(colors=CardDefaults.cardColors(containerColor=Panel)){Column(Modifier.padding(14.dp)){Text(if(ar)"طريقة حساب المواقيت" else "Calculation method");listOf("egypt" to (if(ar)"الهيئة المصرية" else "Egyptian Survey"),"mwl" to "Muslim World League","isna" to "ISNA").forEach{(id,label)->Row(verticalAlignment=Alignment.CenterVertically){RadioButton(method==id,{setMethod(id)});Text(label)}}}}
