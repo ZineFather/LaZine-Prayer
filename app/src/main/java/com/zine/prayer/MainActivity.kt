@@ -67,7 +67,8 @@ class MainActivity:ComponentActivity(){
   if(!pref.getBoolean("mode_v3_migrated",false) && saved=="NOTIFICATION") "ADHAN" else (saved?:"ADHAN")
  })}
  var tick by remember{mutableLongStateOf(System.currentTimeMillis())}
- BackHandler(enabled=page!=0){page=if(page==2)1 else 0}\n LaunchedEffect(Unit){while(true){tick=System.currentTimeMillis();delay(1000)}}
+ BackHandler(enabled=page!=0){page=if(page==2)1 else 0}
+ LaunchedEffect(Unit){while(true){tick=System.currentTimeMillis();delay(1000)}}
  LaunchedEffect(Unit){if(!pref.getBoolean("mode_v3_migrated",false))pref.edit().putBoolean("mode_v3_migrated",true).apply()}
  LaunchedEffect(lang,cityId,method,hanafi,offsets,modes,adhanVoice){val e=pref.edit().putString("adhan_voice",adhanVoice).putString("lang",lang).putString("city",cityId).putString("method",method).putBoolean("hanafi",hanafi);offsets.forEach{(k,v)->e.putInt("off_"+k,v)};modes.forEach{(k,v)->e.putString("mode_"+k,v)};e.apply()}
  val city=cityList.first{it.id==cityId}; val zone=ZoneId.of(city.zone); val now=Instant.ofEpochMilli(tick); val clock=now.atZone(zone); val date=clock.toLocalDate()
