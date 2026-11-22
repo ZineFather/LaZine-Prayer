@@ -21,6 +21,10 @@ jobs:
         run: |
           mkdir -p app/src/main/res/raw
           curl -L --fail --retry 3 "https://upload.wikimedia.org/wikipedia/commons/e/e7/Adhan.ogg" -o app/src/main/res/raw/adhan.ogg
+      - name: Add developer profile image
+        run: |
+          mkdir -p app/src/main/res/drawable-nodpi
+          curl -L --fail --retry 3 "https://raw.githubusercontent.com/ZineFather/Pray-app/main/zinefather.jpg" -o app/src/main/res/drawable-nodpi/zinefather.jpg
       - name: Build debug APK
         run: gradle :app:assembleDebug
       - uses: actions/upload-artifact@v4
