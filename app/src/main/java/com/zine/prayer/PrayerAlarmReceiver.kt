@@ -1,10 +1,14 @@
 package com.zine.prayer
 import android.app.*
 import android.content.*
+import android.os.Build
 class PrayerAlarmReceiver:BroadcastReceiver(){
  override fun onReceive(context:Context,intent:Intent){
   val key=intent.getStringExtra("prayer")?:return
-  if(intent.action=="com.zine.prayer.STOP_ADHAN"){context.getSystemService(NotificationManager::class.java).cancel(key.hashCode());return}
+  if(intent.action=="com.zine.prayer.STOP_ADHAN"){
+   context.getSystemService(NotificationManager::class.java).cancel(key.hashCode())
+   return
+  }
   val prefs=context.getSharedPreferences("lenzin_prayer_settings",0)
   val mode=prefs.getString("mode_"+key,"NOTIFICATION")?:"NOTIFICATION"
   if(mode=="OFF")return
@@ -15,8 +19,12 @@ class PrayerAlarmReceiver:BroadcastReceiver(){
   val open=PendingIntent.getActivity(context,0,Intent(context,MainActivity::class.java),PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
   val stopIntent=Intent(context,PrayerAlarmReceiver::class.java).setAction("com.zine.prayer.STOP_ADHAN").putExtra("prayer",key)
   val stop=PendingIntent.getBroadcast(context,key.hashCode()+1,stopIntent,PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
-  val stopLabel=if(ar)"إيقاف الصوت" else "Stop sound"
-  val n=Notification.Builder(context,channel).setSmallIcon(android.R.drawable.ic_lock_idle_alarm).setContentTitle(title).setContentText("Lenzin Prayer").setContentIntent(open).addAction(android.R.drawable.ic_media_pause,stopLabel,stop).setAutoCancel(true).setCategory(Notification.CATEGORY_ALARM).build()
-  context.getSystemService(NotificationManager::class.java).notify(key.hashCode(),n)
+  val stopLabel=if(ar)"إيقاف الأذان" else "Stop Adhan"
+  val builder=if(Build.VERSION.SDK_INT>=26)Notification.Builder(context,channel) else Notification.Builder(context)
+  val notification=builder.setSmallIcon(android.R.drawable.ic_lock_idle_alarm)
+   .setContentTitle(title).setContentText(if(ar)"Lenzin Prayer • مواقيت الصلاة" else "Lenzin Prayer • Prayer time")
+   .setContentIntent(open).addAction(android.R.drawable.ic_media_pause,stopLabel,stop)
+   .setAutoCancel(false).setCategory(Notification.CATEGORY_ALARM).build()
+  context.getSystemService(NotificationManager::class.java).notify(key.hashCode(),notification)
  }
 }
