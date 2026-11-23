@@ -1,4 +1,7 @@
 name: Build LaZine Prayer APK
+concurrency:
+  group: lazine-prayer-${{ github.ref }}
+  cancel-in-progress: true
 on:
   workflow_dispatch:
   push:
