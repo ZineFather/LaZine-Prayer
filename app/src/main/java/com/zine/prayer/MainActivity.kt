@@ -32,6 +32,8 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -67,6 +69,7 @@ class MainActivity:ComponentActivity(){
   if(!pref.getBoolean("mode_v3_migrated",false) && saved=="NOTIFICATION") "ADHAN" else (saved?:"ADHAN")
  })}
  var tick by remember{mutableLongStateOf(System.currentTimeMillis())}
+ var selectedPrayer by remember{mutableStateOf<String?>(null)}
  BackHandler(enabled=page!=0){page=when(page){2->1;1->0;else->0}}
  LaunchedEffect(Unit){while(true){tick=System.currentTimeMillis();delay(1000)}}
  LaunchedEffect(Unit){if(!pref.getBoolean("mode_v3_migrated",false))pref.edit().putBoolean("mode_v3_migrated",true).apply()}
@@ -78,6 +81,9 @@ class MainActivity:ComponentActivity(){
  val upcoming=(listOf(date to times,tomorrow to tomorrowTimes)).flatMap{(day,pt)->pt.entries().filter{it.first in keys}.map{(key,hour)->Triple(key,day.atStartOfDay(zone).plusNanos((hour*3_600_000_000_000.0).toLong()),hour)}}.filter{it.second.toInstant().isAfter(now)}.minByOrNull{it.second.toInstant()}!!
  val nextName=upcoming.first
  val remain=Duration.between(now,upcoming.second.toInstant()).seconds.coerceAtLeast(0)
+ val selectedTarget=if(selectedPrayer==null) upcoming else (listOf(date to times,tomorrow to tomorrowTimes)).flatMap{(day,pt)->pt.entries().filter{it.first==selectedPrayer}.map{(key,hour)->day.atStartOfDay(zone).plusNanos((hour*3_600_000_000_000.0).toLong())}}.filter{it.toInstant().isAfter(now)}.minByOrNull{it.toInstant()}?:upcoming.second
+ val countdownName=selectedPrayer?:nextName
+ val countdownRemain=Duration.between(now,selectedTarget.toInstant()).seconds.coerceAtLeast(0)
  val hijri=runCatching{HijrahDate.from(date).toString()}.getOrDefault("")
  LaunchedEffect(times,date,modes,city,hanafi,offsets,method){reschedulePrayerAlarms(ctx)}
  Column(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background).statusBarsPadding()){
@@ -87,7 +93,7 @@ class MainActivity:ComponentActivity(){
    TextButton(onClick={page=1}){Text("⚙  "+if(lang=="ar")"الإعدادات" else "Settings",color=MaterialTheme.colorScheme.primary,fontSize=15.sp)}
   }
   when(page){
-   0->Home(lang,city,date,hijri,times,nextName,remain)
+   0->Home(lang,city,date,hijri,times,selectedPrayer,countdownName,countdownRemain,nextName,{selectedPrayer=it},{selectedPrayer=null})
    1->SettingsScreen(lang,{lang=it},cityId,{cityId=it},method,{method=it},hanafi,{hanafi=it},offsets,{offsets=it},modes,{modes=it},
     {if(Build.VERSION.SDK_INT>=31)runCatching{ctx.startActivity(Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))};if(Build.VERSION.SDK_INT>=33)runCatching{ctx.startActivity(Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).putExtra(Settings.EXTRA_APP_PACKAGE,ctx.packageName).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))}},
     {page=2},{open(BUG)},{open(COMMUNITY)},{open("https://github.com/ZineFather/LaZine-Prayer")},{audioPicker.launch(arrayOf("audio/*"))},{customAdhanUri=null;pref.edit().remove("custom_adhan_uri").apply()},customAdhanUri,adhanVoice,{adhanVoice=it},{page=0})
@@ -98,20 +104,42 @@ class MainActivity:ComponentActivity(){
   NavigationBar(containerColor=MaterialTheme.colorScheme.surface,modifier=Modifier.navigationBarsPadding()){NavigationBarItem(page==0,{page=0},icon={Text("⌂")},label={Text(if(lang=="ar")"الرئيسية" else "Home")});NavigationBarItem(page!=0,{page=1},icon={Text("⚙")},label={Text(if(lang=="ar")"الإعدادات" else "Settings")})}
  }
 }
-@Composable private fun Home(lang:String,city:City,date:LocalDate,hijri:String,t:PrayerTimes,next:String,left:Long){
- val ar=lang=="ar"; Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(16.dp),verticalArrangement=Arrangement.spacedBy(12.dp)){
-  Card(colors=CardDefaults.cardColors(containerColor=MaterialTheme.colorScheme.surfaceVariant),shape=RoundedCornerShape(24.dp),modifier=Modifier.fillMaxWidth()){
-   Column(Modifier.fillMaxWidth().padding(20.dp),horizontalAlignment=Alignment.CenterHorizontally){
-    Text(if(ar)city.ar else city.en,color=MaterialTheme.colorScheme.primary);Text(if(ar)"مواقيت الصلاة" else "Prayer times",fontSize=25.sp,fontWeight=FontWeight.Bold,color=MaterialTheme.colorScheme.onSurface)
-    Text(date.format(DateTimeFormatter.ofPattern("EEEE d MMMM yyyy",if(ar)Locale("ar") else Locale.ENGLISH)),color=MaterialTheme.colorScheme.onSurfaceVariant,fontSize=12.sp)
-    Text(if(ar)"التاريخ الهجري: "+hijri else "Hijri: "+hijri,color=MaterialTheme.colorScheme.onSurfaceVariant,fontSize=11.sp)
-    Spacer(Modifier.height(10.dp));Text(if(ar)"الصلاة القادمة: "+(arNames[next]?:next) else "Next prayer: "+(enNames[next]?:next),color=MaterialTheme.colorScheme.primary)
-    Text("%02d:%02d:%02d".format(left/3600,(left%3600)/60,left%60),fontSize=34.sp,fontWeight=FontWeight.Bold)
-    Text(if(ar)"الوقت المتبقي" else "Remaining",color=MaterialTheme.colorScheme.onSurfaceVariant,fontSize=11.sp)
+@Composable private fun Home(lang:String,city:City,date:LocalDate,hijri:String,t:PrayerTimes,selected:String?,countdownName:String,left:Long,next:String,onSelect:(String)->Unit,onReset:()->Unit){
+ val ar=lang=="ar"
+ Column(Modifier.fillMaxWidth().background(Brush.verticalGradient(listOf(MaterialTheme.colorScheme.background,MaterialTheme.colorScheme.surface.copy(alpha=.92f)))).verticalScroll(rememberScrollState()).padding(horizontal=16.dp,vertical=12.dp),verticalArrangement=Arrangement.spacedBy(14.dp)){
+  Card(shape=RoundedCornerShape(30.dp),colors=CardDefaults.cardColors(containerColor=MaterialTheme.colorScheme.surfaceVariant.copy(alpha=.76f)),border=BorderStroke(1.dp,MaterialTheme.colorScheme.primary.copy(alpha=.24f)),modifier=Modifier.fillMaxWidth()){
+   Box(Modifier.background(Brush.linearGradient(listOf(MaterialTheme.colorScheme.primary.copy(alpha=.20f),MaterialTheme.colorScheme.surfaceVariant.copy(alpha=.12f),MaterialTheme.colorScheme.secondary.copy(alpha=.10f)))).padding(22.dp)){
+    Column(Modifier.fillMaxWidth(),horizontalAlignment=Alignment.CenterHorizontally,verticalArrangement=Arrangement.spacedBy(7.dp)){
+     Text(if(ar)city.ar else city.en,color=MaterialTheme.colorScheme.primary,fontWeight=FontWeight.SemiBold,fontSize=14.sp)
+     Text(if(ar)"مواقيت الصلاة" else "Prayer times",fontSize=25.sp,fontWeight=FontWeight.Bold,color=MaterialTheme.colorScheme.onSurface)
+     Text(date.format(DateTimeFormatter.ofPattern("EEEE d MMMM yyyy",if(ar)Locale("ar") else Locale.ENGLISH)),color=MaterialTheme.colorScheme.onSurfaceVariant,fontSize=12.sp)
+     Text(if(ar)"التاريخ الهجري: "+hijri else "Hijri: "+hijri,color=MaterialTheme.colorScheme.onSurfaceVariant,fontSize=11.sp)
+     Spacer(Modifier.height(8.dp))
+     Surface(shape=RoundedCornerShape(50),color=MaterialTheme.colorScheme.primary.copy(alpha=.14f)){Text(if(selected==null){if(ar)"الصلاة القادمة" else "NEXT PRAYER"}else{if(ar)"العد التنازلي للصلاة المختارة" else "SELECTED PRAYER"},modifier=Modifier.padding(horizontal=14.dp,vertical=7.dp),color=MaterialTheme.colorScheme.primary,fontSize=11.sp,fontWeight=FontWeight.Bold)}
+     Text(if(ar)(arNames[countdownName]?:countdownName) else (enNames[countdownName]?:countdownName),fontSize=22.sp,fontWeight=FontWeight.Bold,color=MaterialTheme.colorScheme.onSurface)
+     Text("%02d:%02d:%02d".format(left/3600,(left%3600)/60,left%60),fontSize=38.sp,fontWeight=FontWeight.Bold,color=MaterialTheme.colorScheme.primary)
+     Text(if(ar)"الوقت المتبقي" else "TIME REMAINING",color=MaterialTheme.colorScheme.onSurfaceVariant,fontSize=10.sp)
+     if(selected!=null) TextButton(onClick=onReset){Text(if(ar)"↺ العودة للصلاة القادمة" else "↺ Back to next prayer",fontWeight=FontWeight.SemiBold)}
+    }
    }
   }
-  Text(if(ar)"مواقيت اليوم" else "TODAY",color=MaterialTheme.colorScheme.primary,fontSize=11.sp,fontWeight=FontWeight.Bold)
-  t.entries().forEach{(k,v)->Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(16.dp)).background(if(k==next)MaterialTheme.colorScheme.surfaceVariant else MaterialTheme.colorScheme.surface).padding(17.dp),horizontalArrangement=Arrangement.SpaceBetween){Text(if(ar)arNames[k]?:k else enNames[k]?:k,fontWeight=if(k==next)FontWeight.Bold else FontWeight.Normal,color=MaterialTheme.colorScheme.onSurface);Text(PrayerCalculator.format(v,lang),color=MaterialTheme.colorScheme.primary,fontWeight=FontWeight.Bold)}}
+  Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.SpaceBetween,verticalAlignment=Alignment.CenterVertically){
+   Column(verticalArrangement=Arrangement.spacedBy(2.dp)){Text(if(ar)"مواقيت اليوم" else "TODAY'S PRAYERS",color=MaterialTheme.colorScheme.primary,fontSize=12.sp,fontWeight=FontWeight.Bold);Text(if(ar)"اضغط على أي صلاة لعرض العد التنازلي لها" else "Tap any prayer to view its countdown",color=MaterialTheme.colorScheme.onSurfaceVariant,fontSize=11.sp)}
+   if(selected!=null) TextButton(onClick=onReset){Text(if(ar)"إعادة ضبط" else "Reset")}
+  }
+  t.entries().forEach{(k,v)->
+   val isSelected=selected==k
+   val isNext=selected==null&&k==next
+   Card(onClick={onSelect(k)},shape=RoundedCornerShape(19.dp),colors=CardDefaults.cardColors(containerColor=if(isSelected)MaterialTheme.colorScheme.primary.copy(alpha=.17f) else MaterialTheme.colorScheme.surface.copy(alpha=.82f)),border=BorderStroke(1.dp,if(isSelected)MaterialTheme.colorScheme.primary.copy(alpha=.65f) else MaterialTheme.colorScheme.outlineVariant.copy(alpha=.35f)),modifier=Modifier.fillMaxWidth()){
+    Row(Modifier.fillMaxWidth().padding(horizontal=17.dp,vertical=15.dp),horizontalArrangement=Arrangement.SpaceBetween,verticalAlignment=Alignment.CenterVertically){
+     Row(verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(12.dp)){
+      Box(Modifier.size(38.dp).clip(CircleShape).background(if(isSelected||isNext)MaterialTheme.colorScheme.primary.copy(alpha=.20f) else MaterialTheme.colorScheme.surfaceVariant),contentAlignment=Alignment.Center){Text(when(k){"fajr"->"☾";"sunrise"->"☀";"dhuhr"->"◉";"asr"->"◷";"maghrib"->"◒";else->"☽"},color=MaterialTheme.colorScheme.primary,fontSize=17.sp)}
+      Column(verticalArrangement=Arrangement.spacedBy(2.dp)){Text(if(ar)arNames[k]?:k else enNames[k]?:k,fontWeight=if(isSelected||isNext)FontWeight.Bold else FontWeight.Medium,color=MaterialTheme.colorScheme.onSurface);if(isSelected)Text(if(ar)"محدد للعد التنازلي" else "Countdown selected",fontSize=10.sp,color=MaterialTheme.colorScheme.primary) else if(isNext)Text(if(ar)"القادمة" else "Next",fontSize=10.sp,color=MaterialTheme.colorScheme.primary)}
+     }
+     Text(PrayerCalculator.format(v,lang),color=MaterialTheme.colorScheme.primary,fontWeight=FontWeight.Bold,fontSize=16.sp)
+    }
+   }
+  }
   Text(if(ar)"الحساب محلي وفق زوايا الهيئة المصرية للمساحة: الفجر 19.5° والعشاء 17.5°." else "Local calculation: Egyptian convention (Fajr 19.5°, Isha 17.5°).",color=MaterialTheme.colorScheme.onSurfaceVariant,fontSize=10.sp)
  }
 }
