@@ -42,9 +42,9 @@ import java.time.format.DateTimeFormatter
 import java.util.Locale
 import kotlinx.coroutines.delay
 private val Black=Color(0xFF050609); private val Panel=Color(0xFF111722); private val Blue=Color(0xFF83BFFF)
-private const val PREF="lenzin_prayer_settings"; private const val BUG="https://t.me/ZineROMProject/9"; private const val DEV="https://t.me/ZineFather"
+private const val PREF="lenzin_prayer_settings"; private const val BUG="https://t.me/ZineROMProject/9"; private const val DEV="https://t.me/ZineFather"; private const val COMMUNITY="https://t.me/ZineROMProject/7098"
 private data class AdhanVoice(val id:String,val ar:String,val en:String,val note:String)
-private val adhanVoices=listOf(AdhanVoice("adam","الأذان الأساسي — Adam-synagda","Original Adhan — Adam-synagda","CC0 1.0 • 2:34"),AdhanVoice("sabah","صباح فخري","Sabah Fakhri","Public Domain • 1985 • 2:38"),AdhanVoice("aqib","الأذان — Aaqib Azeez","The Adhan — Aaqib Azeez","CC BY-SA 4.0 • 1:27"),AdhanVoice("andrewler","أذان — Andrewler","Azan — Andrewler","CC BY-SA 4.0 • 3:03"))
+private val adhanVoices=listOf(AdhanVoice("adam","الأذان الأساسي","الأذان الأساسي","تسجيل Adam-synagda • CC0 1.0"),AdhanVoice("sabah","صباح فخري","صباح فخري","الملكية العامة • 2:38"),AdhanVoice("aqib","عاقب عزيز","عاقب عزيز","تسجيل Aaqib Azeez • CC BY-SA 4.0"),AdhanVoice("andrewler","أندرو لير","أندرو لير","تسجيل Andrewler • CC BY-SA 4.0"))
 private data class City(val id:String,val ar:String,val en:String,val lat:Double,val lon:Double,val zone:String="Africa/Cairo")
 private val cityList=listOf(City("alex","الإسكندرية","Alexandria",31.2001,29.9187),City("cairo","القاهرة","Cairo",30.0444,31.2357),City("mecca","مكة المكرمة","Makkah",21.4225,39.8262,"Asia/Riyadh"))
 private val keys=listOf("fajr","dhuhr","asr","maghrib","isha")
@@ -54,7 +54,7 @@ class MainActivity:ComponentActivity(){
  private val permission=registerForActivityResult(ActivityResultContracts.RequestPermission()){}
  override fun onCreate(savedInstanceState:Bundle?){super.onCreate(savedInstanceState); createChannel(this)
   if(Build.VERSION.SDK_INT>=33 && ContextCompat.checkSelfPermission(this,Manifest.permission.POST_NOTIFICATIONS)!=PackageManager.PERMISSION_GRANTED) permission.launch(Manifest.permission.POST_NOTIFICATIONS)
-  setContent { MaterialTheme(colorScheme=darkColorScheme(primary=Blue,background=Black,surface=Panel,onSurface=Color.White,onBackground=Color.White)){ Surface(color=Black,contentColor=Color.White,modifier=Modifier.fillMaxSize()){ App { url->runCatching{startActivity(Intent(Intent.ACTION_VIEW,Uri.parse(url))) } } } } }
+  setContent { val scheme=if(Build.VERSION.SDK_INT>=31) dynamicDarkColorScheme(this@MainActivity) else darkColorScheme(primary=Blue,background=Black,surface=Panel,onSurface=Color.White,onBackground=Color.White); MaterialTheme(colorScheme=scheme){ Surface(color=scheme.background,contentColor=scheme.onBackground,modifier=Modifier.fillMaxSize()){ App { url->runCatching{startActivity(Intent(Intent.ACTION_VIEW,Uri.parse(url))) } } } } }
  }
 }
 @Composable private fun App(open:(String)->Unit){
@@ -80,42 +80,42 @@ class MainActivity:ComponentActivity(){
  val remain=Duration.between(now,upcoming.second.toInstant()).seconds.coerceAtLeast(0)
  val hijri=runCatching{HijrahDate.from(date).toString()}.getOrDefault("")
  LaunchedEffect(times,date,modes,city,hanafi,offsets,method){reschedulePrayerAlarms(ctx)}
- Column(Modifier.fillMaxSize().background(Black).statusBarsPadding()){
+ Column(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background).statusBarsPadding()){
   CompositionLocalProvider(LocalLayoutDirection provides if(lang=="ar")LayoutDirection.Rtl else LayoutDirection.Ltr){
   Row(Modifier.fillMaxWidth().padding(horizontal=18.dp, vertical=12.dp),horizontalArrangement=Arrangement.SpaceBetween,verticalAlignment=Alignment.CenterVertically){
-   Column{Text("LaZine Prayer",fontSize=23.sp,fontWeight=FontWeight.Bold,color=Color.White);Text(if(lang=="ar")"مواقيت الصلاة بدون إنترنت" else "Offline prayer times",color=Color.LightGray,fontSize=12.sp)}
-   TextButton(onClick={page=1}){Text("⚙  "+if(lang=="ar")"الإعدادات" else "Settings",color=Blue,fontSize=15.sp)}
+   Column{Text("LaZine Prayer",fontSize=23.sp,fontWeight=FontWeight.Bold,color=MaterialTheme.colorScheme.onSurface);Text(if(lang=="ar")"مواقيت الصلاة بدون إنترنت" else "Offline prayer times",color=MaterialTheme.colorScheme.onSurfaceVariant,fontSize=12.sp)}
+   TextButton(onClick={page=1}){Text("⚙  "+if(lang=="ar")"الإعدادات" else "Settings",color=MaterialTheme.colorScheme.primary,fontSize=15.sp)}
   }
   when(page){
    0->Home(lang,city,date,hijri,times,nextName,remain)
    1->SettingsScreen(lang,{lang=it},cityId,{cityId=it},method,{method=it},hanafi,{hanafi=it},offsets,{offsets=it},modes,{modes=it},
     {if(Build.VERSION.SDK_INT>=31)runCatching{ctx.startActivity(Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))};if(Build.VERSION.SDK_INT>=33)runCatching{ctx.startActivity(Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).putExtra(Settings.EXTRA_APP_PACKAGE,ctx.packageName).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))}},
-    {page=2},{open(BUG)},{open("https://github.com/ZineFather/LaZine-Prayer")},{audioPicker.launch(arrayOf("audio/*"))},{customAdhanUri=null;pref.edit().remove("custom_adhan_uri").apply()},customAdhanUri,adhanVoice,{adhanVoice=it},{page=0})
+    {page=2},{open(BUG)},{open(COMMUNITY)},{open("https://github.com/ZineFather/LaZine-Prayer")},{audioPicker.launch(arrayOf("audio/*"))},{customAdhanUri=null;pref.edit().remove("custom_adhan_uri").apply()},customAdhanUri,adhanVoice,{adhanVoice=it},{page=0})
    else->Developer(lang,{page=1},{open(DEV)},{open(BUG)})
   }
   }
   Spacer(Modifier.weight(1f))
-  NavigationBar(containerColor=Panel,modifier=Modifier.navigationBarsPadding()){NavigationBarItem(page==0,{page=0},icon={Text("⌂")},label={Text(if(lang=="ar")"الرئيسية" else "Home")});NavigationBarItem(page!=0,{page=1},icon={Text("⚙")},label={Text(if(lang=="ar")"الإعدادات" else "Settings")})}
+  NavigationBar(containerColor=MaterialTheme.colorScheme.surface,modifier=Modifier.navigationBarsPadding()){NavigationBarItem(page==0,{page=0},icon={Text("⌂")},label={Text(if(lang=="ar")"الرئيسية" else "Home")});NavigationBarItem(page!=0,{page=1},icon={Text("⚙")},label={Text(if(lang=="ar")"الإعدادات" else "Settings")})}
  }
 }
 @Composable private fun Home(lang:String,city:City,date:LocalDate,hijri:String,t:PrayerTimes,next:String,left:Long){
  val ar=lang=="ar"; Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(16.dp),verticalArrangement=Arrangement.spacedBy(12.dp)){
-  Card(colors=CardDefaults.cardColors(containerColor=Color(0xFF101D2E)),shape=RoundedCornerShape(24.dp),modifier=Modifier.fillMaxWidth()){
+  Card(colors=CardDefaults.cardColors(containerColor=MaterialTheme.colorScheme.surfaceVariant),shape=RoundedCornerShape(24.dp),modifier=Modifier.fillMaxWidth()){
    Column(Modifier.fillMaxWidth().padding(20.dp),horizontalAlignment=Alignment.CenterHorizontally){
     Text(if(ar)city.ar else city.en,color=Blue);Text(if(ar)"مواقيت الصلاة" else "Prayer times",fontSize=25.sp,fontWeight=FontWeight.Bold,color=Color.White)
     Text(date.format(DateTimeFormatter.ofPattern("EEEE d MMMM yyyy",if(ar)Locale("ar") else Locale.ENGLISH)),color=Color.LightGray,fontSize=12.sp)
-    Text(if(ar)"التاريخ الهجري: "+hijri else "Hijri: "+hijri,color=Color.Gray,fontSize=11.sp)
+    Text(if(ar)"التاريخ الهجري: "+hijri else "Hijri: "+hijri,color=MaterialTheme.colorScheme.onSurfaceVariant,fontSize=11.sp)
     Spacer(Modifier.height(10.dp));Text(if(ar)"الصلاة القادمة: "+(arNames[next]?:next) else "Next prayer: "+(enNames[next]?:next),color=Blue)
     Text("%02d:%02d:%02d".format(left/3600,(left%3600)/60,left%60),fontSize=34.sp,fontWeight=FontWeight.Bold)
     Text(if(ar)"الوقت المتبقي" else "Remaining",color=Color.Gray,fontSize=11.sp)
    }
   }
   Text(if(ar)"مواقيت اليوم" else "TODAY",color=Blue,fontSize=11.sp,fontWeight=FontWeight.Bold)
-  t.entries().forEach{(k,v)->Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(16.dp)).background(if(k==next)Color(0xFF14243A) else Panel).padding(17.dp),horizontalArrangement=Arrangement.SpaceBetween){Text(if(ar)arNames[k]?:k else enNames[k]?:k,fontWeight=if(k==next)FontWeight.Bold else FontWeight.Normal,color=Color.White);Text(PrayerCalculator.format(v,lang),color=Blue,fontWeight=FontWeight.Bold)}}
+  t.entries().forEach{(k,v)->Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(16.dp)).background(if(k==next)MaterialTheme.colorScheme.surfaceVariant else Panel).padding(17.dp),horizontalArrangement=Arrangement.SpaceBetween){Text(if(ar)arNames[k]?:k else enNames[k]?:k,fontWeight=if(k==next)FontWeight.Bold else FontWeight.Normal,color=Color.White);Text(PrayerCalculator.format(v,lang),color=Blue,fontWeight=FontWeight.Bold)}}
   Text(if(ar)"الحساب محلي وفق زوايا الهيئة المصرية للمساحة: الفجر 19.5° والعشاء 17.5°." else "Local calculation: Egyptian convention (Fajr 19.5°, Isha 17.5°).",color=Color.Gray,fontSize=10.sp)
  }
 }
-@Composable private fun SettingsScreen(lang:String,setLang:(String)->Unit,city:String,setCity:(String)->Unit,method:String,setMethod:(String)->Unit,hanafi:Boolean,setHanafi:(Boolean)->Unit,offs:Map<String,Int>,setOffs:(Map<String,Int>)->Unit,modes:Map<String,String>,setModes:(Map<String,String>)->Unit,permissions:()->Unit,developer:()->Unit,bug:()->Unit,sourceCode:()->Unit,pickAudio:()->Unit,clearAudio:()->Unit,customAudio:String?,adhanVoice:String,setAdhanVoice:(String)->Unit,developerBack:()->Unit){
+@Composable private fun SettingsScreen(lang:String,setLang:(String)->Unit,city:String,setCity:(String)->Unit,method:String,setMethod:(String)->Unit,hanafi:Boolean,setHanafi:(Boolean)->Unit,offs:Map<String,Int>,setOffs:(Map<String,Int>)->Unit,modes:Map<String,String>,setModes:(Map<String,String>)->Unit,permissions:()->Unit,developer:()->Unit,bug:()->Unit,community:()->Unit,sourceCode:()->Unit,pickAudio:()->Unit,clearAudio:()->Unit,customAudio:String?,adhanVoice:String,setAdhanVoice:(String)->Unit,developerBack:()->Unit){
  val ctx=androidx.compose.ui.platform.LocalContext.current
  val ar=lang=="ar"; Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(16.dp),verticalArrangement=Arrangement.spacedBy(10.dp)){
   Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.SpaceBetween,verticalAlignment=Alignment.CenterVertically){Text(if(ar)"الإعدادات" else "Settings",fontSize=26.sp,fontWeight=FontWeight.Bold);TextButton(onClick={developerBack()}){Text(if(ar)"رجوع ‹" else "Back ‹",color=Blue)}}
@@ -125,7 +125,7 @@ class MainActivity:ComponentActivity(){
   Card(colors=CardDefaults.cardColors(containerColor=Panel)){Column(Modifier.padding(14.dp)){Text(if(ar)"حساب العصر" else "Asr method");Row(verticalAlignment=Alignment.CenterVertically){RadioButton(!hanafi,{setHanafi(false)});Text(if(ar)"قياسي" else "Standard")};Row(verticalAlignment=Alignment.CenterVertically){RadioButton(hanafi,{setHanafi(true)});Text(if(ar)"حنفي" else "Hanafi")}}}
   Text(if(ar)"تعديل المواقيت بالدقائق" else "Minute adjustments",color=Blue,fontWeight=FontWeight.Bold)
   keys.forEach{k->Card(colors=CardDefaults.cardColors(containerColor=Panel)){Row(Modifier.fillMaxWidth().padding(10.dp),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.SpaceBetween){Text(if(ar)arNames[k]!! else enNames[k]!!);TextButton(onClick={setOffs(offs+(k to ((offs[k]?:0)-1)))}){Text("−")};Text((offs[k]?:0).toString(),color=Blue);TextButton(onClick={setOffs(offs+(k to ((offs[k]?:0)+1)))}){Text("+")}}}}
-  Card(colors=CardDefaults.cardColors(containerColor=Panel)){Column(Modifier.fillMaxWidth().padding(14.dp),verticalArrangement=Arrangement.spacedBy(8.dp)){Text(if(ar)"اختيار صوت المؤذن" else "Choose Adhan voice",color=Blue,fontWeight=FontWeight.Bold);Text(if(ar)"كل التسجيلات مضبوطة على مستوى صوت متوازن وواضح. اختر الصوت ثم اضغط تجربة." else "Recordings are loudness-normalized for clear, balanced playback. Select a voice, then tap Test.",color=Color.LightGray,fontSize=12.sp);adhanVoices.forEach{voice->Row(Modifier.fillMaxWidth().clickable{setAdhanVoice(voice.id)},verticalAlignment=Alignment.CenterVertically){RadioButton(selected=adhanVoice==voice.id,onClick={setAdhanVoice(voice.id)});Column{Text(if(ar)voice.ar else voice.en,color=Color.White,fontWeight=FontWeight.SemiBold);Text(voice.note,color=Color.Gray,fontSize=10.sp)}}};OutlinedButton(onClick={val test=Intent(ctx,PrayerAlarmReceiver::class.java).setAction("com.zine.prayer.TEST").putExtra("prayer","fajr");ctx.sendBroadcast(test)},modifier=Modifier.fillMaxWidth()){Text(if(ar)"تجربة الصوت المختار" else "Test selected voice")}}}
+  Card(colors=CardDefaults.cardColors(containerColor=Panel)){Column(Modifier.fillMaxWidth().padding(14.dp),verticalArrangement=Arrangement.spacedBy(8.dp)){Text(if(ar)"اختيار صوت المؤذن" else "Choose Adhan voice",color=Blue,fontWeight=FontWeight.Bold);Text(if(ar)"كل التسجيلات مضبوطة على مستوى صوت متوازن وواضح. اختر الصوت ثم اضغط تجربة." else "Recordings are loudness-normalized for clear, balanced playback. Select a voice, then tap Test.",color=Color.LightGray,fontSize=12.sp);adhanVoices.forEach{voice->Row(Modifier.fillMaxWidth().clickable{setAdhanVoice(voice.id)},verticalAlignment=Alignment.CenterVertically){RadioButton(selected=adhanVoice==voice.id,onClick={setAdhanVoice(voice.id)});Column{Text(voice.ar,color=Color.White,fontWeight=FontWeight.SemiBold);Text(voice.note,color=Color.Gray,fontSize=10.sp)}}};OutlinedButton(onClick={val test=Intent(ctx,PrayerAlarmReceiver::class.java).setAction("com.zine.prayer.TEST").putExtra("prayer","fajr");ctx.sendBroadcast(test)},modifier=Modifier.fillMaxWidth()){Text(if(ar)"تجربة الصوت المختار" else "Test selected voice")}}}
   Card(colors=CardDefaults.cardColors(containerColor=Panel)){Column(Modifier.fillMaxWidth().padding(14.dp),verticalArrangement=Arrangement.spacedBy(8.dp)){Text(if(ar)"ملف أذان مخصص" else "Custom Adhan audio",color=Blue,fontWeight=FontWeight.Bold);Text(if(customAudio!=null)if(ar)"تم اختيار ملف صوتي خاص بك" else "Your custom audio file is selected" else if(ar)"سيستخدم التطبيق صوت الأذان المرفق." else "The bundled Adhan will be used.",color=Color.LightGray,fontSize=12.sp);Button(onClick=pickAudio,modifier=Modifier.fillMaxWidth()){Text(if(ar)"اختيار ملف صوتي (MP3 / M4A / OGG)" else "Choose audio file (MP3 / M4A / OGG)")};if(customAudio!=null)OutlinedButton(onClick=clearAudio,modifier=Modifier.fillMaxWidth()){Text(if(ar)"العودة للصوت الأصلي" else "Use bundled Adhan")}}}
   Text(if(ar)"تنبيه كل صلاة" else "Prayer notifications",color=Blue,fontWeight=FontWeight.Bold)
   Text(if(ar)"اختر الأذان الكامل أو نغمة إشعار أو الصامت أو إيقاف التنبيه. استخدم تجربة للتأكد من الصوت." else "Choose full Adhan, a short notification tone, silent, or off. Use Test to verify.",color=Color.LightGray,fontSize=12.sp)
@@ -133,6 +133,7 @@ class MainActivity:ComponentActivity(){
   Button(onClick=permissions,modifier=Modifier.fillMaxWidth()){Text(if(ar)"إدارة أذونات الإشعارات والمنبهات" else "Notification & alarm permissions")}
   OutlinedButton(onClick=developer,modifier=Modifier.fillMaxWidth()){Text(if(ar)"About Developer • عن المطور" else "About Developer")}
   OutlinedButton(onClick=bug,modifier=Modifier.fillMaxWidth()){Text(if(ar)"Report a Bug • الإبلاغ عن خطأ" else "Report a bug")}
+  OutlinedButton(onClick=community,modifier=Modifier.fillMaxWidth()){Text("مجتمع التطبيق • نقاشات ودعم LaZine Prayer")}
   OutlinedButton(onClick=sourceCode,modifier=Modifier.fillMaxWidth()){Text(if(ar)"Source Code • الكود المصدري على GitHub" else "Source Code • GitHub")}
  }
 }
@@ -148,7 +149,7 @@ class MainActivity:ComponentActivity(){
     }
     Text("ZineFather",fontSize=27.sp,fontWeight=FontWeight.Bold,color=Color.White)
     Text("@ZineFather",fontSize=14.sp,color=Blue)
-    Surface(shape=RoundedCornerShape(50),color=Color(0xFF203752)){Text(if(ar)"Android Developer • ROM Maintainer" else "Android Developer • ROM Maintainer",modifier=Modifier.padding(horizontal=13.dp,vertical=7.dp),fontSize=11.sp,color=Color(0xFFD8E9FF))}
+    Surface(shape=RoundedCornerShape(50),color=MaterialTheme.colorScheme.secondaryContainer){Text(if(ar)"Android Developer • ROM Maintainer" else "Android Developer • ROM Maintainer",modifier=Modifier.padding(horizontal=13.dp,vertical=7.dp),fontSize=11.sp,color=Color(0xFFD8E9FF))}
    }
   }
   Column(verticalArrangement=Arrangement.spacedBy(8.dp)){
