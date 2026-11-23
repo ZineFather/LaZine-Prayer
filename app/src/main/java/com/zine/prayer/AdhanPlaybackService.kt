@@ -48,7 +48,7 @@ class AdhanPlaybackService : Service() {
             if (customUri != null) {
                 media.setDataSource(this, Uri.parse(customUri))
             } else {
-                val audioRes = when (selectedVoice) { "sabah" -> R.raw.adhan_sabah; "aishatu" -> R.raw.adhan_aishatu; "aishatu_long" -> R.raw.adhan_aishatu_long; else -> R.raw.adhan }
+                val audioRes = when (selectedVoice) { "sabah" -> R.raw.adhan_sabah; "aqib" -> R.raw.adhan_aqib; "andrewler" -> R.raw.adhan_andrewler; else -> R.raw.adhan }
                 val afd = resources.openRawResourceFd(audioRes)
                 media.setDataSource(afd.fileDescriptor, afd.startOffset, afd.length)
                 afd.close()
