@@ -30,6 +30,19 @@ A free and open-source prayer-times app with Arabic and English support and full
 
 The source code and Android manifest are public so anyone can inspect the app's behavior and declared permissions. Google Play Protect screenshots, when included in the `Screenshots/` folder, document the scan result for the exact APK and scan date shown. A scan result is useful evidence, but it is not an absolute guarantee that every build is 100% risk-free.
 
+## 📸 Screenshots & scan evidence
+
+### App interface
+![LaZine Prayer home screen](Screenshots/Screenshot_20261123_010836.jpg)
+
+### Notification permission
+![Android notification permission prompt](Screenshots/Screenshot_20261123_025802_Permission%20controller.jpg)
+
+### Google Play Protect
+![Google Play Protect result for the tested APK](Screenshots/Screenshot_20261123_031501_Google%20Play%20Store.jpg)
+
+The Play Protect screenshot shows the result for the APK visible in that screenshot at the time it was scanned. It is evidence for that specific scan, not a blanket guarantee for every future build.
+
 ## App details
 
 - Package: `com.zine.prayer`
