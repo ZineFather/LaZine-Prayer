@@ -68,6 +68,8 @@ The VirusTotal screenshot below documents the scan result for the exact APK that
 مطور أندرويد ورومات Samsung ومؤسس ZineROM، يهتم بتطوير أدوات وتطبيقات أندرويد وتحسين دعم الأجهزة وتجربة الاستخدام.
 
 - Telegram: [@ZineFather](https://t.me/ZineFather)
+- App community & discussion topic: [LaZine Prayer Telegram topic](https://t.me/ZineROMProject/7098)
+- App community & discussion topic: [LaZine Prayer](https://t.me/ZineROMProject/7098)
 - Bug reports: [Report a bug](https://t.me/ZineROMProject/9)
 - Source code: [GitHub repository](https://github.com/ZineFather/LaZine-Prayer)
 
@@ -75,7 +77,7 @@ The VirusTotal screenshot below documents the scan result for the exact APK that
 
 - Package: `com.zine.prayer`
 - Minimum Android: 8.0 (API 26)
-- Current version: 4.6.3
+- Current version: 4.6.4
 
 ## Build from source
 
