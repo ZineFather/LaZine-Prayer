@@ -76,13 +76,14 @@ The VirusTotal screenshot below documents the scan result for the exact APK that
 ## App details
 
 - Package: `com.zine.prayer`
-- Minimum Android: 8.0 (API 26)
-- Current version: 4.6.4
+- Android 7 Legacy APK: Android 7.0–7.1 (API 24–25), package `com.zine.prayer.legacy`
+- Modern APK: Android 8.0+ (API 26+), package `com.zine.prayer`
+- Current version: 4.6.5
 
 ## Build from source
 
 ```bash
-gradle :app:assembleDebug
+gradle :app:assembleLegacyDebug :app:assembleModernDebug
 ```
 
-GitHub Actions builds the APK from `main` and publishes it in GitHub Releases. GitHub also provides source-code archives automatically.
+GitHub Actions builds both compatibility APKs from `main` and publishes them together in GitHub Releases. Choose **Android 7 Legacy** only for Android 7.0/7.1; choose **Modern** for Android 8.0 and newer. GitHub also provides source-code archives automatically.
