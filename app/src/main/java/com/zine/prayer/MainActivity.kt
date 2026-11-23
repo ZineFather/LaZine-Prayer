@@ -11,10 +11,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.compose.BackHandler
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.statusBarsPadding
@@ -169,29 +166,10 @@ class MainActivity:ComponentActivity(){
  val ar=lang=="ar"
  Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal=18.dp, vertical=12.dp),verticalArrangement=Arrangement.spacedBy(16.dp)){
   TextButton(onClick=back,contentPadding=PaddingValues(horizontal=8.dp,vertical=6.dp)){Text("‹  "+if(ar)"رجوع للإعدادات" else "Back to Settings",color=MaterialTheme.colorScheme.primary,fontSize=14.sp)}
-  Card(colors=CardDefaults.cardColors(containerColor=MaterialTheme.colorScheme.surfaceVariant),shape=RoundedCornerShape(28.dp),modifier=Modifier.fillMaxWidth()){
-   Column(Modifier.fillMaxWidth().padding(vertical=26.dp,horizontal=20.dp),horizontalAlignment=Alignment.CenterHorizontally,verticalArrangement=Arrangement.spacedBy(9.dp)){
-    Box(contentAlignment=Alignment.BottomEnd){
-     Image(painter=painterResource(id=R.drawable.zinefather),contentDescription="ZineFather developer profile",modifier=Modifier.size(116.dp).clip(CircleShape),contentScale=ContentScale.Crop)
-     Surface(shape=CircleShape,color=MaterialTheme.colorScheme.secondaryContainer,modifier=Modifier.size(25.dp)){Box(contentAlignment=Alignment.Center){Text("✓",color=MaterialTheme.colorScheme.onSecondaryContainer,fontSize=13.sp,fontWeight=FontWeight.Bold)}}
-    }
-    Text("ZineFather",fontSize=27.sp,fontWeight=FontWeight.Bold,color=MaterialTheme.colorScheme.onSurface)
-    Text("@ZineFather",fontSize=14.sp,color=MaterialTheme.colorScheme.primary)
-    Surface(shape=RoundedCornerShape(50),color=MaterialTheme.colorScheme.secondaryContainer){Text(if(ar)"Android Developer • ROM Maintainer" else "Android Developer • ROM Maintainer",modifier=Modifier.padding(horizontal=13.dp,vertical=7.dp),fontSize=11.sp,color=MaterialTheme.colorScheme.onSecondaryContainer)}
-   }
+  Text(if(ar)"نبذة عن المطور" else "ABOUT THE DEVELOPER",fontSize=13.sp,fontWeight=FontWeight.Bold,color=MaterialTheme.colorScheme.primary)
+  Card(colors=CardDefaults.cardColors(containerColor=MaterialTheme.colorScheme.surfaceVariant),shape=RoundedCornerShape(22.dp),modifier=Modifier.fillMaxWidth()){
+   Text(if(ar)"مطور أندرويد ومطور رومات مخصصة، ومؤسس ZineROM. أعمل على تطوير رومات Samsung وأدوات أندرويد وتطبيقات تهدف إلى تحسين تجربة الاستخدام ودعم الأجهزة." else "Android developer and custom ROM maintainer, and founder of ZineROM. I work on Samsung custom ROMs, Android tools and applications focused on improving usability and device support.",modifier=Modifier.padding(20.dp),fontSize=15.sp,lineHeight=24.sp,color=MaterialTheme.colorScheme.onSurfaceVariant)
   }
-  Column(verticalArrangement=Arrangement.spacedBy(8.dp)){
-   Text(if(ar)"نبذة عن المطور" else "ABOUT THE DEVELOPER",fontSize=12.sp,fontWeight=FontWeight.Bold,color=MaterialTheme.colorScheme.primary)
-   Card(colors=CardDefaults.cardColors(containerColor=MaterialTheme.colorScheme.surface),shape=RoundedCornerShape(20.dp),modifier=Modifier.fillMaxWidth()){
-    Text(if(ar)"مطور رومات أندرويد ومؤسس ZineROM. يعمل على تطوير رومات Samsung وأدوات أندرويد ومواقع وتطبيقات، ويهتم بتحسين تجربة الاستخدام ودعم الأجهزة." else "Android ROM developer and founder of ZineROM. Focused on Samsung custom ROMs, Android tools, websites and apps, with an emphasis on usability and device support.",modifier=Modifier.padding(18.dp),fontSize=14.sp,lineHeight=22.sp,color=MaterialTheme.colorScheme.onSurfaceVariant)
-   }
-  }
-  Column(verticalArrangement=Arrangement.spacedBy(10.dp)){
-   Text(if(ar)"التواصل والدعم" else "CONTACT & SUPPORT",fontSize=12.sp,fontWeight=FontWeight.Bold,color=MaterialTheme.colorScheme.primary)
-   Button(onClick=telegram,modifier=Modifier.fillMaxWidth(),shape=RoundedCornerShape(15.dp),contentPadding=PaddingValues(vertical=14.dp)){Text("Telegram  •  @ZineFather",fontWeight=FontWeight.SemiBold)}
-   OutlinedButton(onClick=bug,modifier=Modifier.fillMaxWidth(),shape=RoundedCornerShape(15.dp),contentPadding=PaddingValues(vertical=14.dp)){Text(if(ar)"الإبلاغ عن مشكلة" else "Report a bug")}
-  }
-  Text("LaZine Prayer",modifier=Modifier.fillMaxWidth(),textAlign=androidx.compose.ui.text.style.TextAlign.Center,color=MaterialTheme.colorScheme.onSurfaceVariant,fontSize=11.sp)
  }
 }
 private fun createChannel(c:Context){if(Build.VERSION.SDK_INT>=26){val nm=c.getSystemService(NotificationManager::class.java)
