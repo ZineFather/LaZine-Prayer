@@ -12,8 +12,8 @@ class PrayerAlarmReceiver:BroadcastReceiver(){
    return
   }
   val prefs=context.getSharedPreferences("lenzin_prayer_settings",0)
-  val isTest=intent.action=="com.zine.prayer.TEST"
-  val mode=if(isTest)"ADHAN" else (prefs.getString("mode_"+key,"ADHAN")?:"ADHAN")
+  val isVoicePreview=intent.action=="com.zine.prayer.TEST_VOICE"
+  val mode=if(isVoicePreview)"ADHAN" else (prefs.getString("mode_"+key,"ADHAN")?:"ADHAN")
   if(mode=="OFF")return
   val ar=prefs.getString("lang","ar")=="ar"
   val names=if(ar)mapOf("fajr" to "الفجر","dhuhr" to "الظهر","asr" to "العصر","maghrib" to "المغرب","isha" to "العشاء") else mapOf("fajr" to "Fajr","dhuhr" to "Dhuhr","asr" to "Asr","maghrib" to "Maghrib","isha" to "Isha")
