@@ -39,9 +39,9 @@ jobs:
       - name: Build release APK
         run: |
           gradle :app:assembleDebug
-          cp app/build/outputs/apk/debug/app-debug.apk app/build/outputs/apk/debug/LaZinePrayer-4.5.0-Hotfix.apk
+          cp app/build/outputs/apk/debug/app-debug.apk app/build/outputs/apk/debug/LaZinePrayer-4.5.1-Hotfix.apk
       - uses: actions/upload-artifact@v4
         with:
-          name: LaZinePrayer-4.5.0-Hotfix
-          path: app/build/outputs/apk/debug/LaZinePrayer-4.5.0-Hotfix.apk
+          name: LaZinePrayer-4.5.1-Hotfix
+          path: app/build/outputs/apk/debug/LaZinePrayer-4.5.1-Hotfix.apk
           if-no-files-found: error
