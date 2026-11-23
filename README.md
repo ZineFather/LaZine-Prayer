@@ -32,7 +32,9 @@ The screenshots below show the security scan results from Google Play Protect fo
 
 الصور أدناه تعرض نتائج فحص Google Play Protect لملف APK الذي تم اختباره. نشجع المستخدمين على مراجعة الكود المصدري والتحقق من ملف APK قبل التثبيت.
 
-**Permission transparency:** The app requests notification permission at runtime. Its manifest also declares Android system permissions for exact alarms, boot rescheduling and Adhan playback. It does not declare the Internet permission. A clean scan is useful evidence for the exact APK tested, but no single scanner can guarantee that every build is 100% risk-free.
+**Permission transparency:** The only runtime permission prompt requested by the app is Android's notification permission (`POST_NOTIFICATIONS`). The manifest also declares system permissions used for exact alarm scheduling, rescheduling after reboot and Adhan foreground playback; these are not additional runtime permission prompts. The app does not request location, contacts, microphone, camera or storage permissions, and it does not declare `INTERNET`.
+
+**Privacy audit:** The current source and Gradle dependencies were reviewed: the project uses AndroidX/Jetpack Compose libraries and contains no integrated advertising, analytics or tracking SDKs. Prayer calculations and settings are handled locally on the device. This is a source-level review, not a mathematical guarantee about every future APK; the Google Play Protect screenshot documents only the exact APK that was scanned. No scanner can certify an app as 100% risk-free.
 
 ## 📸 Screenshots | لقطات الشاشة
 
@@ -70,7 +72,7 @@ The screenshots below show the security scan results from Google Play Protect fo
 
 - Package: `com.zine.prayer`
 - Minimum Android: 8.0 (API 26)
-- Current version: 4.6.2
+- Current version: 4.6.3
 
 ## Build from source
 
