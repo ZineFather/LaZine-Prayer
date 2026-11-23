@@ -29,7 +29,6 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -67,8 +66,10 @@ class MainActivity:ComponentActivity(){
  })}
  var tick by remember{mutableLongStateOf(System.currentTimeMillis())}
  var selectedPrayer by remember{mutableStateOf<String?>(null)}
+ val selectPrayer = remember { { prayer: String -> selectedPrayer = prayer } }
+ val resetSelectedPrayer = remember { { selectedPrayer = null } }
  BackHandler(enabled=page!=0){page=when(page){2->1;1->0;else->0}}
- LaunchedEffect(Unit){while(true){tick=System.currentTimeMillis();delay(1000)}}
+ LaunchedEffect(page){while(page==0){tick=System.currentTimeMillis();delay(1000)}}
  LaunchedEffect(Unit){if(!pref.getBoolean("mode_v3_migrated",false))pref.edit().putBoolean("mode_v3_migrated",true).apply()}
  LaunchedEffect(lang,cityId,method,hanafi,offsets,modes,adhanVoice){val e=pref.edit().putString("adhan_voice",adhanVoice).putString("lang",lang).putString("city",cityId).putString("method",method).putBoolean("hanafi",hanafi);offsets.forEach{(k,v)->e.putInt("off_"+k,v)};modes.forEach{(k,v)->e.putString("mode_"+k,v)};e.apply()}
  val city=cityList.first{it.id==cityId}; val zone=ZoneId.of(city.zone); val now=Instant.ofEpochMilli(tick); val clock=now.atZone(zone); val date=clock.toLocalDate()
@@ -90,7 +91,7 @@ class MainActivity:ComponentActivity(){
    TextButton(onClick={page=1}){Text("⚙  "+if(lang=="ar")"الإعدادات" else "Settings",color=MaterialTheme.colorScheme.primary,fontSize=15.sp)}
   }
   when(page){
-   0->Home(lang,city,date,hijri,times,selectedPrayer,countdownName,countdownRemain,nextName,{selectedPrayer=it},{selectedPrayer=null})
+   0->Home(lang,city,date,hijri,times,selectedPrayer,countdownName,countdownRemain,nextName,selectPrayer,resetSelectedPrayer)
    1->SettingsScreen(lang,{lang=it},cityId,{cityId=it},method,{method=it},hanafi,{hanafi=it},offsets,{offsets=it},modes,{modes=it},
     {if(Build.VERSION.SDK_INT>=31)runCatching{ctx.startActivity(Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))};if(Build.VERSION.SDK_INT>=33)runCatching{ctx.startActivity(Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).putExtra(Settings.EXTRA_APP_PACKAGE,ctx.packageName).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))}},
     {page=2},{open(BUG)},{open(COMMUNITY)},{open("https://github.com/ZineFather/LaZine-Prayer")},{audioPicker.launch(arrayOf("audio/*"))},{customAdhanUri=null;pref.edit().remove("custom_adhan_uri").apply()},customAdhanUri,adhanVoice,{adhanVoice=it},{page=0})
@@ -103,9 +104,9 @@ class MainActivity:ComponentActivity(){
 }
 @Composable private fun Home(lang:String,city:City,date:LocalDate,hijri:String,t:PrayerTimes,selected:String?,countdownName:String,left:Long,next:String,onSelect:(String)->Unit,onReset:()->Unit){
  val ar=lang=="ar"
- Column(Modifier.fillMaxWidth().background(Brush.verticalGradient(listOf(MaterialTheme.colorScheme.background,MaterialTheme.colorScheme.surface.copy(alpha=.92f)))).verticalScroll(rememberScrollState()).padding(horizontal=16.dp,vertical=12.dp),verticalArrangement=Arrangement.spacedBy(14.dp)){
-  Card(shape=RoundedCornerShape(30.dp),colors=CardDefaults.cardColors(containerColor=MaterialTheme.colorScheme.surfaceVariant.copy(alpha=.76f)),border=BorderStroke(1.dp,MaterialTheme.colorScheme.primary.copy(alpha=.24f)),modifier=Modifier.fillMaxWidth()){
-   Box(Modifier.background(Brush.linearGradient(listOf(MaterialTheme.colorScheme.primary.copy(alpha=.20f),MaterialTheme.colorScheme.surfaceVariant.copy(alpha=.12f),MaterialTheme.colorScheme.secondary.copy(alpha=.10f)))).padding(22.dp)){
+ Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(horizontal=16.dp,vertical=12.dp),verticalArrangement=Arrangement.spacedBy(14.dp)){
+  Card(shape=RoundedCornerShape(30.dp),colors=CardDefaults.cardColors(containerColor=MaterialTheme.colorScheme.surfaceVariant),border=BorderStroke(1.dp,MaterialTheme.colorScheme.primary.copy(alpha=.24f)),modifier=Modifier.fillMaxWidth()){
+   Box(Modifier.padding(22.dp)){
     Column(Modifier.fillMaxWidth(),horizontalAlignment=Alignment.CenterHorizontally,verticalArrangement=Arrangement.spacedBy(7.dp)){
      Text(if(ar)city.ar else city.en,color=MaterialTheme.colorScheme.primary,fontWeight=FontWeight.SemiBold,fontSize=14.sp)
      Text(if(ar)"مواقيت الصلاة" else "Prayer times",fontSize=25.sp,fontWeight=FontWeight.Bold,color=MaterialTheme.colorScheme.onSurface)
@@ -124,20 +125,24 @@ class MainActivity:ComponentActivity(){
    Column(verticalArrangement=Arrangement.spacedBy(2.dp)){Text(if(ar)"مواقيت اليوم" else "TODAY'S PRAYERS",color=MaterialTheme.colorScheme.primary,fontSize=12.sp,fontWeight=FontWeight.Bold);Text(if(ar)"اضغط على أي صلاة لعرض العد التنازلي لها" else "Tap any prayer to view its countdown",color=MaterialTheme.colorScheme.onSurfaceVariant,fontSize=11.sp)}
    if(selected!=null) TextButton(onClick=onReset){Text(if(ar)"إعادة ضبط" else "Reset")}
   }
-  t.entries().forEach{(k,v)->
-   val isSelected=selected==k
-   val isNext=selected==null&&k==next
-   Card(onClick={onSelect(k)},shape=RoundedCornerShape(19.dp),colors=CardDefaults.cardColors(containerColor=if(isSelected)MaterialTheme.colorScheme.primary.copy(alpha=.17f) else MaterialTheme.colorScheme.surface.copy(alpha=.82f)),border=BorderStroke(1.dp,if(isSelected)MaterialTheme.colorScheme.primary.copy(alpha=.65f) else MaterialTheme.colorScheme.outlineVariant.copy(alpha=.35f)),modifier=Modifier.fillMaxWidth()){
-    Row(Modifier.fillMaxWidth().padding(horizontal=17.dp,vertical=15.dp),horizontalArrangement=Arrangement.SpaceBetween,verticalAlignment=Alignment.CenterVertically){
-     Row(verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(12.dp)){
-      Box(Modifier.size(38.dp).clip(CircleShape).background(if(isSelected||isNext)MaterialTheme.colorScheme.primary.copy(alpha=.20f) else MaterialTheme.colorScheme.surfaceVariant),contentAlignment=Alignment.Center){Text(when(k){"fajr"->"☾";"sunrise"->"☀";"dhuhr"->"◉";"asr"->"◷";"maghrib"->"◒";else->"☽"},color=MaterialTheme.colorScheme.primary,fontSize=17.sp)}
-      Column(verticalArrangement=Arrangement.spacedBy(2.dp)){Text(if(ar)arNames[k]?:k else enNames[k]?:k,fontWeight=if(isSelected||isNext)FontWeight.Bold else FontWeight.Medium,color=MaterialTheme.colorScheme.onSurface);if(isSelected)Text(if(ar)"محدد للعد التنازلي" else "Countdown selected",fontSize=10.sp,color=MaterialTheme.colorScheme.primary) else if(isNext)Text(if(ar)"القادمة" else "Next",fontSize=10.sp,color=MaterialTheme.colorScheme.primary)}
-     }
-     Text(PrayerCalculator.format(v,lang),color=MaterialTheme.colorScheme.primary,fontWeight=FontWeight.Bold,fontSize=16.sp)
+   PrayerRows(t,lang,selected,next,onSelect)
+  Text(if(ar)"الحساب محلي وفق زوايا الهيئة المصرية للمساحة: الفجر 19.5° والعشاء 17.5°." else "Local calculation: Egyptian convention (Fajr 19.5°, Isha 17.5°).",color=MaterialTheme.colorScheme.onSurfaceVariant,fontSize=10.sp)
+ }
+}
+@Composable private fun PrayerRows(t:PrayerTimes,lang:String,selected:String?,next:String,onSelect:(String)->Unit){
+ val ar=lang=="ar"
+ t.entries().forEach{(k,v)->
+  val isSelected=selected==k
+  val isNext=selected==null&&k==next
+  Card(onClick={onSelect(k)},shape=RoundedCornerShape(19.dp),colors=CardDefaults.cardColors(containerColor=if(isSelected)MaterialTheme.colorScheme.primary.copy(alpha=.17f) else MaterialTheme.colorScheme.surface),border=BorderStroke(1.dp,if(isSelected)MaterialTheme.colorScheme.primary.copy(alpha=.65f) else MaterialTheme.colorScheme.outlineVariant.copy(alpha=.35f)),modifier=Modifier.fillMaxWidth()){
+   Row(Modifier.fillMaxWidth().padding(horizontal=17.dp,vertical=15.dp),horizontalArrangement=Arrangement.SpaceBetween,verticalAlignment=Alignment.CenterVertically){
+    Row(verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(12.dp)){
+     Box(Modifier.size(38.dp).clip(CircleShape).background(if(isSelected||isNext)MaterialTheme.colorScheme.primary.copy(alpha=.20f) else MaterialTheme.colorScheme.surfaceVariant),contentAlignment=Alignment.Center){Text(when(k){"fajr"->"☾";"sunrise"->"☀";"dhuhr"->"◉";"asr"->"◷";"maghrib"->"◒";else->"☽"},color=MaterialTheme.colorScheme.primary,fontSize=17.sp)}
+     Column(verticalArrangement=Arrangement.spacedBy(2.dp)){Text(if(ar)arNames[k]?:k else enNames[k]?:k,fontWeight=if(isSelected||isNext)FontWeight.Bold else FontWeight.Medium,color=MaterialTheme.colorScheme.onSurface);if(isSelected)Text(if(ar)"محدد للعد التنازلي" else "Countdown selected",fontSize=10.sp,color=MaterialTheme.colorScheme.primary) else if(isNext)Text(if(ar)"القادمة" else "Next",fontSize=10.sp,color=MaterialTheme.colorScheme.primary)}
     }
+    Text(PrayerCalculator.format(v,lang),color=MaterialTheme.colorScheme.primary,fontWeight=FontWeight.Bold,fontSize=16.sp)
    }
   }
-  Text(if(ar)"الحساب محلي وفق زوايا الهيئة المصرية للمساحة: الفجر 19.5° والعشاء 17.5°." else "Local calculation: Egyptian convention (Fajr 19.5°, Isha 17.5°).",color=MaterialTheme.colorScheme.onSurfaceVariant,fontSize=10.sp)
  }
 }
 @Composable private fun SettingsScreen(lang:String,setLang:(String)->Unit,city:String,setCity:(String)->Unit,method:String,setMethod:(String)->Unit,hanafi:Boolean,setHanafi:(Boolean)->Unit,offs:Map<String,Int>,setOffs:(Map<String,Int>)->Unit,modes:Map<String,String>,setModes:(Map<String,String>)->Unit,permissions:()->Unit,developer:()->Unit,bug:()->Unit,community:()->Unit,sourceCode:()->Unit,pickAudio:()->Unit,clearAudio:()->Unit,customAudio:String?,adhanVoice:String,setAdhanVoice:(String)->Unit,developerBack:()->Unit){
@@ -168,7 +173,6 @@ class MainActivity:ComponentActivity(){
   TextButton(onClick=back){Text("‹  "+if(ar)"رجوع للإعدادات" else "Back to Settings")}
   Card(colors=CardDefaults.cardColors(containerColor=MaterialTheme.colorScheme.surfaceVariant),shape=RoundedCornerShape(28.dp),modifier=Modifier.fillMaxWidth()){
    Column(Modifier.fillMaxWidth().padding(24.dp),horizontalAlignment=Alignment.CenterHorizontally,verticalArrangement=Arrangement.spacedBy(9.dp)){
-    Box(Modifier.size(88.dp).clip(CircleShape).background(Brush.linearGradient(listOf(MaterialTheme.colorScheme.primary.copy(alpha=.28f),MaterialTheme.colorScheme.secondary.copy(alpha=.18f)))),contentAlignment=Alignment.Center){Text("Z",fontSize=42.sp,fontWeight=FontWeight.Bold,color=MaterialTheme.colorScheme.primary)}
     Text("ZineFather",fontSize=27.sp,fontWeight=FontWeight.Bold,color=MaterialTheme.colorScheme.onSurface)
     Text("@ZineFather",fontSize=14.sp,color=MaterialTheme.colorScheme.primary)
     Text("Android Developer • ROM Maintainer",fontSize=12.sp,color=MaterialTheme.colorScheme.onSurfaceVariant)
