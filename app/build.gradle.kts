@@ -10,8 +10,8 @@ android {
         applicationId = "com.zine.prayer"
         minSdk = 26
         targetSdk = 35
-        versionCode = 5
-        versionName = "4.5.0 Hotfix"
+        versionCode = 6
+        versionName = "4.5.1 Hotfix"
     }
     buildFeatures { compose = true }
     compileOptions {
