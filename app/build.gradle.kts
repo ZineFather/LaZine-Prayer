@@ -10,8 +10,8 @@ android {
         applicationId = "com.zine.prayer"
         minSdk = 26
         targetSdk = 35
-        versionCode = 11
-        versionName = "4.6.3"
+        versionCode = 12
+        versionName = "4.6.4"
     }
     buildFeatures { compose = true }
     compileOptions {
@@ -25,6 +25,7 @@ dependencies {
     implementation("androidx.activity:activity-compose:1.11.0")
     implementation("androidx.compose.material3:material3")
     implementation("androidx.compose.ui:ui")
+    implementation("androidx.compose.animation:animation")
     implementation("androidx.compose.foundation:foundation")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.9.4")
 }
