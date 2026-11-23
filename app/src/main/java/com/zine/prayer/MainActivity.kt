@@ -10,6 +10,7 @@ import android.provider.Settings
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -36,6 +37,8 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -46,7 +49,12 @@ import java.time.chrono.HijrahDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 import kotlinx.coroutines.delay
-private val Black=Color(0xFF050609); private val Panel=Color(0xFF111722); private val Blue=Color(0xFF83BFFF)
+private val Black=Color(0xFF050609)
+private val Panel=Color(0xCC111A28)
+private val Blue=Color(0xFF8CC7FF)
+private val Glass=Color(0xB8121D2B)
+private val GlassBorder=Color(0x35D9EBFF)
+private val Muted=Color(0xFF9BAEC4)
 private const val PREF="lenzin_prayer_settings"
 private data class AdhanVoice(val id:String,val ar:String,val en:String,val note:String)
 private val adhanVoices=listOf(AdhanVoice("adam","الأذان الأساسي","الأذان الأساسي","تسجيل آدم سيناجدا • CC0 1.0"),AdhanVoice("sabah","صباح فخري","صباح فخري","الملكية العامة • 2:38"),AdhanVoice("aqib","عاقب عزيز","عاقب عزيز","تسجيل عاقب عزيز • CC BY-SA 4.0"),AdhanVoice("andrewler","أندرو لير","أندرو لير","تسجيل أندرو لير • CC BY-SA 4.0"))
@@ -59,7 +67,23 @@ class MainActivity:ComponentActivity(){
  private val permission=registerForActivityResult(ActivityResultContracts.RequestPermission()){}
  override fun onCreate(savedInstanceState:Bundle?){super.onCreate(savedInstanceState); createChannel(this)
   if(Build.VERSION.SDK_INT>=33 && ContextCompat.checkSelfPermission(this,Manifest.permission.POST_NOTIFICATIONS)!=PackageManager.PERMISSION_GRANTED) permission.launch(Manifest.permission.POST_NOTIFICATIONS)
-  setContent { val scheme=if(Build.VERSION.SDK_INT>=31) dynamicDarkColorScheme(this@MainActivity) else darkColorScheme(primary=Blue,background=Black,surface=Panel,onSurface=Color.White,onBackground=Color.White); MaterialTheme(colorScheme=scheme){ Surface(color=scheme.background,contentColor=scheme.onBackground,modifier=Modifier.fillMaxSize()){ App { url->runCatching{startActivity(Intent(Intent.ACTION_VIEW,Uri.parse(url))) } } } } }
+  setContent {
+   val scheme=darkColorScheme(
+    primary=Blue,onPrimary=Color(0xFF07111D),background=Black,onBackground=Color(0xFFF2F6FC),
+    surface=Glass,onSurface=Color(0xFFF2F6FC),surfaceVariant=Color(0xD91B293A),
+    onSurfaceVariant=Muted,outline=Color(0x557FA9D4),outlineVariant=GlassBorder,
+    secondary=Color(0xFFB5D9FF),onSecondary=Color(0xFF081421)
+   )
+   MaterialTheme(colorScheme=scheme){
+    Box(Modifier.fillMaxSize().background(Brush.linearGradient(listOf(Color(0xFF070B12),Color(0xFF050609),Color(0xFF091321))))) {
+     Box(Modifier.size(360.dp).align(Alignment.TopEnd).offset(x=110.dp,y=(-100).dp).background(Brush.radialGradient(listOf(Color(0x243B8DCE),Color.Transparent))))
+     Box(Modifier.size(300.dp).align(Alignment.BottomStart).offset(x=(-120).dp,y=80.dp).background(Brush.radialGradient(listOf(Color(0x182C5D9B),Color.Transparent))))
+     Surface(color=Color.Transparent,contentColor=scheme.onBackground,modifier=Modifier.fillMaxSize()){
+      App { url->runCatching{startActivity(Intent(Intent.ACTION_VIEW,Uri.parse(url))) } }
+     }
+    }
+   }
+  }
  }
 }
 @Composable private fun App(open:(String)->Unit){
@@ -91,7 +115,7 @@ class MainActivity:ComponentActivity(){
  val countdownRemain=((selectedTarget-tick)/1000L).coerceAtLeast(0)
  val hijri=runCatching{HijrahDate.from(date).toString()}.getOrDefault("")
  LaunchedEffect(times,date,modes,city,hanafi,offsets,method){reschedulePrayerAlarms(ctx)}
- Column(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background).statusBarsPadding()){
+ Column(Modifier.fillMaxSize().statusBarsPadding()){
   CompositionLocalProvider(LocalLayoutDirection provides if(lang=="ar")LayoutDirection.Rtl else LayoutDirection.Ltr){
   Row(Modifier.fillMaxWidth().padding(horizontal=18.dp, vertical=12.dp),horizontalArrangement=Arrangement.SpaceBetween,verticalAlignment=Alignment.CenterVertically){
    Column{Text("LaZine Prayer",fontSize=23.sp,fontWeight=FontWeight.Bold,color=MaterialTheme.colorScheme.onSurface);Text(if(lang=="ar")"مواقيت الصلاة بدون إنترنت" else "Offline prayer times",color=MaterialTheme.colorScheme.onSurfaceVariant,fontSize=12.sp)}
@@ -115,14 +139,14 @@ class MainActivity:ComponentActivity(){
   }
   }
   Spacer(Modifier.weight(1f))
-  NavigationBar(containerColor=MaterialTheme.colorScheme.surface,modifier=Modifier.navigationBarsPadding()){NavigationBarItem(page==0,{page=0},icon={Text("⌂")},label={Text(if(lang=="ar")"الرئيسية" else "Home")});NavigationBarItem(page!=0,{page=1},icon={Text("⚙")},label={Text(if(lang=="ar")"الإعدادات" else "Settings")})}
+  NavigationBar(containerColor=Color(0xE60B111B),modifier=Modifier.navigationBarsPadding()){NavigationBarItem(page==0,{page=0},icon={Text("⌂")},label={Text(if(lang=="ar")"الرئيسية" else "Home")});NavigationBarItem(page!=0,{page=1},icon={Text("⚙")},label={Text(if(lang=="ar")"الإعدادات" else "Settings")})}
  }
 }
 @Composable private fun Home(lang:String,city:City,date:LocalDate,hijri:String,t:PrayerTimes,selected:String?,countdownName:String,left:Long,next:String,onSelect:(String)->Unit,onReset:()->Unit){
  val ar=lang=="ar"
  Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(horizontal=16.dp,vertical=12.dp),verticalArrangement=Arrangement.spacedBy(14.dp)){
-  Card(shape=RoundedCornerShape(30.dp),colors=CardDefaults.cardColors(containerColor=MaterialTheme.colorScheme.surfaceVariant),border=BorderStroke(1.dp,MaterialTheme.colorScheme.primary.copy(alpha=.24f)),modifier=Modifier.fillMaxWidth()){
-   Box(Modifier.padding(22.dp)){
+  Card(shape=RoundedCornerShape(30.dp),colors=CardDefaults.cardColors(containerColor=Color(0xD9162232)),border=BorderStroke(1.dp,Color(0x557FB9F0)),modifier=Modifier.fillMaxWidth().animateContentSize()){
+   Box(Modifier.background(Brush.linearGradient(listOf(Color(0x302E75B7),Color.Transparent,Color(0x18204D7A))),RoundedCornerShape(30.dp)).padding(22.dp)){
     Column(Modifier.fillMaxWidth(),horizontalAlignment=Alignment.CenterHorizontally,verticalArrangement=Arrangement.spacedBy(7.dp)){
      Text(if(ar)city.ar else city.en,color=MaterialTheme.colorScheme.primary,fontWeight=FontWeight.SemiBold,fontSize=14.sp)
      Text(if(ar)"مواقيت الصلاة" else "Prayer times",fontSize=25.sp,fontWeight=FontWeight.Bold,color=MaterialTheme.colorScheme.onSurface)
@@ -131,7 +155,7 @@ class MainActivity:ComponentActivity(){
      Spacer(Modifier.height(8.dp))
      Surface(shape=RoundedCornerShape(50),color=MaterialTheme.colorScheme.primary.copy(alpha=.14f)){Text(if(selected==null){if(ar)"الصلاة القادمة" else "NEXT PRAYER"}else{if(ar)"العد التنازلي للصلاة المختارة" else "SELECTED PRAYER"},modifier=Modifier.padding(horizontal=14.dp,vertical=7.dp),color=MaterialTheme.colorScheme.primary,fontSize=11.sp,fontWeight=FontWeight.Bold)}
      Text(if(ar)(arNames[countdownName]?:countdownName) else (enNames[countdownName]?:countdownName),fontSize=22.sp,fontWeight=FontWeight.Bold,color=MaterialTheme.colorScheme.onSurface)
-     Text("%02d:%02d:%02d".format(left/3600,(left%3600)/60,left%60),fontSize=38.sp,fontWeight=FontWeight.Bold,color=MaterialTheme.colorScheme.primary)
+     Text("%02d:%02d:%02d".format(left/3600,(left%3600)/60,left%60),fontSize=42.sp,fontWeight=FontWeight.Bold,color=MaterialTheme.colorScheme.primary)
      Text(if(ar)"الوقت المتبقي" else "TIME REMAINING",color=MaterialTheme.colorScheme.onSurfaceVariant,fontSize=10.sp)
      if(selected!=null) TextButton(onClick=onReset){Text(if(ar)"↺ العودة للصلاة القادمة" else "↺ Back to next prayer",fontWeight=FontWeight.SemiBold)}
     }
@@ -150,7 +174,7 @@ class MainActivity:ComponentActivity(){
  t.entries().forEach{(k,v)->
   val isSelected=selected==k
   val isNext=selected==null&&k==next
-  Card(onClick={onSelect(k)},shape=RoundedCornerShape(19.dp),colors=CardDefaults.cardColors(containerColor=if(isSelected)MaterialTheme.colorScheme.primary.copy(alpha=.17f) else MaterialTheme.colorScheme.surface),border=BorderStroke(1.dp,if(isSelected)MaterialTheme.colorScheme.primary.copy(alpha=.65f) else MaterialTheme.colorScheme.outlineVariant.copy(alpha=.35f)),modifier=Modifier.fillMaxWidth()){
+  Card(onClick={onSelect(k)},shape=RoundedCornerShape(20.dp),colors=CardDefaults.cardColors(containerColor=if(isSelected)Color(0xD52B5278) else if(isNext)Color(0xB51A2A3D) else Glass),border=BorderStroke(1.dp,if(isSelected)Blue.copy(alpha=.78f) else if(isNext)Blue.copy(alpha=.42f) else GlassBorder),modifier=Modifier.fillMaxWidth().animateContentSize()){
    Row(Modifier.fillMaxWidth().padding(horizontal=17.dp,vertical=15.dp),horizontalArrangement=Arrangement.SpaceBetween,verticalAlignment=Alignment.CenterVertically){
     Row(verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(12.dp)){
      Box(Modifier.size(38.dp).clip(CircleShape).background(if(isSelected||isNext)MaterialTheme.colorScheme.primary.copy(alpha=.20f) else MaterialTheme.colorScheme.surfaceVariant),contentAlignment=Alignment.Center){Text(when(k){"fajr"->"☾";"sunrise"->"☀";"dhuhr"->"◉";"asr"->"◷";"maghrib"->"◒";else->"☽"},color=MaterialTheme.colorScheme.primary,fontSize=17.sp)}
@@ -163,14 +187,14 @@ class MainActivity:ComponentActivity(){
 }
 @Composable private fun SettingsScreen(lang:String,setLang:(String)->Unit,city:String,setCity:(String)->Unit,method:String,setMethod:(String)->Unit,hanafi:Boolean,setHanafi:(Boolean)->Unit,offs:Map<String,Int>,setOffs:(Map<String,Int>)->Unit,modes:Map<String,String>,setModes:(Map<String,String>)->Unit,permissions:()->Unit,developer:()->Unit,sourceCode:()->Unit,pickAudio:()->Unit,clearAudio:()->Unit,customAudio:String?,adhanVoice:String,setAdhanVoice:(String)->Unit,developerBack:()->Unit){
  val ctx=androidx.compose.ui.platform.LocalContext.current
- val ar=lang=="ar"; Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(16.dp),verticalArrangement=Arrangement.spacedBy(10.dp)){
+ val ar=lang=="ar"; Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(horizontal=16.dp,vertical=14.dp),verticalArrangement=Arrangement.spacedBy(13.dp)){
   Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.SpaceBetween,verticalAlignment=Alignment.CenterVertically){Text(if(ar)"الإعدادات" else "Settings",fontSize=26.sp,fontWeight=FontWeight.Bold);FilledTonalButton(onClick={developerBack()},shape=RoundedCornerShape(14.dp),contentPadding=PaddingValues(horizontal=16.dp,vertical=9.dp)){Text(if(ar)"رجوع  ‹" else "‹  Back",fontWeight=FontWeight.SemiBold)}}
-  Card(colors=CardDefaults.cardColors(containerColor=MaterialTheme.colorScheme.surface)){Column(Modifier.padding(14.dp)){Text(if(ar)"اللغة" else "Language");Row{FilterChip(lang=="ar",{setLang("ar")},{Text("العربية")});Spacer(Modifier.width(8.dp));FilterChip(lang=="en",{setLang("en")},{Text("English")})}}}
+  Card(shape=RoundedCornerShape(22.dp),colors=CardDefaults.cardColors(containerColor=Glass),border=BorderStroke(1.dp,GlassBorder),modifier=Modifier.fillMaxWidth().animateContentSize()){Column(Modifier.padding(14.dp)){Text(if(ar)"اللغة" else "Language");Row{FilterChip(lang=="ar",{setLang("ar")},{Text("العربية")});Spacer(Modifier.width(8.dp));FilterChip(lang=="en",{setLang("en")},{Text("English")})}}}
   Card(colors=CardDefaults.cardColors(containerColor=MaterialTheme.colorScheme.surface)){Column(Modifier.padding(14.dp)){Text(if(ar)"المدينة" else "City");cityList.forEach{c->Row(verticalAlignment=Alignment.CenterVertically){RadioButton(city==c.id,{setCity(c.id)});Text(if(ar)c.ar else c.en)}}}}
   Card(colors=CardDefaults.cardColors(containerColor=MaterialTheme.colorScheme.surface)){Column(Modifier.padding(14.dp)){Text(if(ar)"طريقة حساب المواقيت" else "Calculation method");listOf("egypt" to (if(ar)"الهيئة المصرية" else "Egyptian Survey"),"mwl" to "Muslim World League","isna" to "ISNA").forEach{(id,label)->Row(verticalAlignment=Alignment.CenterVertically){RadioButton(method==id,{setMethod(id)});Text(label)}}}}
   Card(colors=CardDefaults.cardColors(containerColor=MaterialTheme.colorScheme.surface)){Column(Modifier.padding(14.dp)){Text(if(ar)"حساب العصر" else "Asr method");Row(verticalAlignment=Alignment.CenterVertically){RadioButton(!hanafi,{setHanafi(false)});Text(if(ar)"قياسي" else "Standard")};Row(verticalAlignment=Alignment.CenterVertically){RadioButton(hanafi,{setHanafi(true)});Text(if(ar)"حنفي" else "Hanafi")}}}
   Text(if(ar)"تعديل المواقيت بالدقائق" else "Minute adjustments",color=MaterialTheme.colorScheme.primary,fontWeight=FontWeight.Bold)
-  keys.forEach{k->Card(colors=CardDefaults.cardColors(containerColor=MaterialTheme.colorScheme.surface)){Row(Modifier.fillMaxWidth().padding(10.dp),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.SpaceBetween){Text(if(ar)arNames[k]!! else enNames[k]!!);TextButton(onClick={setOffs(offs+(k to ((offs[k]?:0)-1)))}){Text("−")};Text((offs[k]?:0).toString(),color=MaterialTheme.colorScheme.primary);TextButton(onClick={setOffs(offs+(k to ((offs[k]?:0)+1)))}){Text("+")}}}}
+  keys.forEach{k->Card(colors=CardDefaults.cardColors(containerColor=MaterialTheme.colorScheme.surface)){Row(Modifier.fillMaxWidth().padding(horizontal=13.dp,vertical=12.dp),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.SpaceBetween){Text(if(ar)arNames[k]!! else enNames[k]!!);TextButton(onClick={setOffs(offs+(k to ((offs[k]?:0)-1)))}){Text("−")};Text((offs[k]?:0).toString(),color=MaterialTheme.colorScheme.primary);TextButton(onClick={setOffs(offs+(k to ((offs[k]?:0)+1)))}){Text("+")}}}}
   Card(colors=CardDefaults.cardColors(containerColor=MaterialTheme.colorScheme.surface)){Column(Modifier.fillMaxWidth().padding(14.dp),verticalArrangement=Arrangement.spacedBy(8.dp)){Text(if(ar)"اختيار صوت المؤذن" else "Choose Adhan voice",color=MaterialTheme.colorScheme.primary,fontWeight=FontWeight.Bold);Text(if(ar)"كل التسجيلات مضبوطة على مستوى صوت متوازن وواضح. اختر الصوت ثم اضغط تجربة." else "Recordings are loudness-normalized for clear, balanced playback. Select a voice, then tap Test.",color=MaterialTheme.colorScheme.onSurfaceVariant,fontSize=12.sp);adhanVoices.forEach{voice->Row(Modifier.fillMaxWidth().clickable{setAdhanVoice(voice.id)},verticalAlignment=Alignment.CenterVertically){RadioButton(selected=adhanVoice==voice.id,onClick={setAdhanVoice(voice.id)});Column{Text(voice.ar,color=MaterialTheme.colorScheme.onSurface,fontWeight=FontWeight.SemiBold);Text(voice.note,color=MaterialTheme.colorScheme.onSurfaceVariant,fontSize=10.sp)}}};OutlinedButton(onClick={val test=Intent(ctx,PrayerAlarmReceiver::class.java).setAction("com.zine.prayer.TEST_VOICE").putExtra("prayer","fajr");ctx.sendBroadcast(test)},modifier=Modifier.fillMaxWidth()){Text(if(ar)"تجربة الصوت المختار" else "Test selected voice")}}}
   Card(colors=CardDefaults.cardColors(containerColor=MaterialTheme.colorScheme.surface)){Column(Modifier.fillMaxWidth().padding(14.dp),verticalArrangement=Arrangement.spacedBy(8.dp)){Text(if(ar)"ملف أذان مخصص" else "Custom Adhan audio",color=MaterialTheme.colorScheme.primary,fontWeight=FontWeight.Bold);Text(if(customAudio!=null)if(ar)"تم اختيار ملف صوتي خاص بك" else "Your custom audio file is selected" else if(ar)"سيستخدم التطبيق صوت الأذان المرفق." else "The bundled Adhan will be used.",color=MaterialTheme.colorScheme.onSurfaceVariant,fontSize=12.sp);Button(onClick=pickAudio,modifier=Modifier.fillMaxWidth()){Text(if(ar)"اختيار ملف صوتي (MP3 / M4A / OGG)" else "Choose audio file (MP3 / M4A / OGG)")};if(customAudio!=null)OutlinedButton(onClick=clearAudio,modifier=Modifier.fillMaxWidth()){Text(if(ar)"العودة للصوت الأصلي" else "Use bundled Adhan")}}}
   Text(if(ar)"تنبيه كل صلاة" else "Prayer notifications",color=MaterialTheme.colorScheme.primary,fontWeight=FontWeight.Bold)
@@ -186,7 +210,7 @@ class MainActivity:ComponentActivity(){
  val ar=lang=="ar"
  Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal=18.dp,vertical=12.dp),verticalArrangement=Arrangement.spacedBy(16.dp)){
   TextButton(onClick=back){Text("‹  "+if(ar)"رجوع للإعدادات" else "Back to Settings")}
-  Card(colors=CardDefaults.cardColors(containerColor=MaterialTheme.colorScheme.surfaceVariant),shape=RoundedCornerShape(28.dp),modifier=Modifier.fillMaxWidth()){
+  Card(colors=CardDefaults.cardColors(containerColor=Color(0xD9162232)),border=BorderStroke(1.dp,GlassBorder),shape=RoundedCornerShape(28.dp),modifier=Modifier.fillMaxWidth()){
    Column(Modifier.fillMaxWidth().padding(24.dp),horizontalAlignment=Alignment.CenterHorizontally,verticalArrangement=Arrangement.spacedBy(9.dp)){
     Text("ZineFather",fontSize=27.sp,fontWeight=FontWeight.Bold,color=MaterialTheme.colorScheme.onSurface)
     Text("@ZineFather",fontSize=14.sp,color=MaterialTheme.colorScheme.primary)
@@ -194,7 +218,7 @@ class MainActivity:ComponentActivity(){
    }
   }
   Text(if(ar)"نبذة عن المطور" else "ABOUT THE DEVELOPER",fontSize=12.sp,fontWeight=FontWeight.Bold,color=MaterialTheme.colorScheme.primary)
-  Card(colors=CardDefaults.cardColors(containerColor=MaterialTheme.colorScheme.surface),modifier=Modifier.fillMaxWidth()){
+  Card(colors=CardDefaults.cardColors(containerColor=Glass),border=BorderStroke(1.dp,GlassBorder),shape=RoundedCornerShape(22.dp),modifier=Modifier.fillMaxWidth()){
    Text(if(ar)"مطور رومات أندرويد ومؤسس ZineROM. يعمل على تطوير رومات Samsung وأدوات أندرويد ومواقع وتطبيقات، ويهتم بتحسين تجربة الاستخدام ودعم الأجهزة." else "Android ROM developer and founder of ZineROM. Focused on Samsung custom ROMs, Android tools, websites and apps, with an emphasis on usability and device support.",modifier=Modifier.padding(18.dp),fontSize=14.sp,lineHeight=22.sp,color=MaterialTheme.colorScheme.onSurfaceVariant)
   }
 
