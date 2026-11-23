@@ -44,7 +44,7 @@ import kotlinx.coroutines.delay
 private val Black=Color(0xFF050609); private val Panel=Color(0xFF111722); private val Blue=Color(0xFF83BFFF)
 private const val PREF="lenzin_prayer_settings"; private const val BUG="https://t.me/ZineROMProject/9"; private const val DEV="https://t.me/ZineFather"
 private data class AdhanVoice(val id:String,val ar:String,val en:String,val note:String)
-private val adhanVoices=listOf(AdhanVoice("adam","الأذان الأساسي","Original Adhan","Adam-synagda • CC0"),AdhanVoice("sabah","صباح فخري","Sabah Fakhri","Public-domain recording • 1985"),AdhanVoice("aishatu","أذان بصوت Aishatu98","Aishatu98 Adhan","CC0 • 42 seconds"),AdhanVoice("aishatu_long","أذان طويل بصوت Aishatu98","Extended Adhan • Aishatu98","CC0 • 1 minute 42 seconds"))
+private val adhanVoices=listOf(AdhanVoice("adam","الأذان الأساسي — Adam-synagda","Original Adhan — Adam-synagda","CC0 1.0 • 2:34"),AdhanVoice("sabah","صباح فخري","Sabah Fakhri","Public Domain • 1985 • 2:38"),AdhanVoice("aqib","الأذان — Aaqib Azeez","The Adhan — Aaqib Azeez","CC BY-SA 4.0 • 1:27"),AdhanVoice("andrewler","أذان — Andrewler","Azan — Andrewler","CC BY-SA 4.0 • 3:03"))
 private data class City(val id:String,val ar:String,val en:String,val lat:Double,val lon:Double,val zone:String="Africa/Cairo")
 private val cityList=listOf(City("alex","الإسكندرية","Alexandria",31.2001,29.9187),City("cairo","القاهرة","Cairo",30.0444,31.2357),City("mecca","مكة المكرمة","Makkah",21.4225,39.8262,"Asia/Riyadh"))
 private val keys=listOf("fajr","dhuhr","asr","maghrib","isha")
@@ -67,7 +67,7 @@ class MainActivity:ComponentActivity(){
   if(!pref.getBoolean("mode_v3_migrated",false) && saved=="NOTIFICATION") "ADHAN" else (saved?:"ADHAN")
  })}
  var tick by remember{mutableLongStateOf(System.currentTimeMillis())}
- BackHandler(enabled=page!=0){page=if(page==2)1 else 0}
+ BackHandler(enabled=page!=0){page=when(page){2->1;1->0;else->0}}
  LaunchedEffect(Unit){while(true){tick=System.currentTimeMillis();delay(1000)}}
  LaunchedEffect(Unit){if(!pref.getBoolean("mode_v3_migrated",false))pref.edit().putBoolean("mode_v3_migrated",true).apply()}
  LaunchedEffect(lang,cityId,method,hanafi,offsets,modes,adhanVoice){val e=pref.edit().putString("adhan_voice",adhanVoice).putString("lang",lang).putString("city",cityId).putString("method",method).putBoolean("hanafi",hanafi);offsets.forEach{(k,v)->e.putInt("off_"+k,v)};modes.forEach{(k,v)->e.putString("mode_"+k,v)};e.apply()}
