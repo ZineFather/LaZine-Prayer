@@ -53,8 +53,8 @@ import kotlinx.coroutines.delay
 private val Black=Color(0xFF050609)
 private val Panel=Color(0xCC111A28)
 private val Blue=Color(0xFF8CC7FF)
-private val Glass=Color(0xB8121D2B)
-private val GlassBorder=Color(0x35D9EBFF)
+private val Glass=Color(0xD011151B)
+private val GlassBorder=Color(0x36FFFFFF)
 private val Muted=Color(0xFF9BAEC4)
 private const val PREF="lenzin_prayer_settings"
 private data class AdhanVoice(val id:String,val ar:String,val en:String,val note:String)
@@ -144,8 +144,8 @@ class MainActivity:ComponentActivity(){
 @Composable private fun Home(lang:String,city:City,date:LocalDate,hijri:String,t:PrayerTimes,selected:String?,countdownName:String,targetMillis:Long,next:String,onSelect:(String)->Unit,onReset:()->Unit){
  val ar=lang=="ar"
  Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(horizontal=16.dp,vertical=12.dp),verticalArrangement=Arrangement.spacedBy(14.dp)){
-  Card(shape=RoundedCornerShape(30.dp),colors=CardDefaults.cardColors(containerColor=Color(0xD9162232)),border=BorderStroke(1.dp,Color(0x557FB9F0)),modifier=Modifier.fillMaxWidth().animateContentSize()){
-   Box(Modifier.background(Brush.linearGradient(listOf(Color(0x302E75B7),Color.Transparent,Color(0x18204D7A))),RoundedCornerShape(30.dp)).padding(22.dp)){
+  Card(shape=RoundedCornerShape(30.dp),colors=CardDefaults.cardColors(containerColor=Color(0xD0161A20)),border=BorderStroke(1.dp,Color(0x55FFFFFF)),modifier=Modifier.fillMaxWidth().animateContentSize()){
+   Box(Modifier.background(Brush.linearGradient(listOf(Color(0x20FFFFFF),Color(0x08000000),Color(0x141B2A3A))),RoundedCornerShape(30.dp)).padding(22.dp)){
     Column(Modifier.fillMaxWidth(),horizontalAlignment=Alignment.CenterHorizontally,verticalArrangement=Arrangement.spacedBy(7.dp)){
      Text(if(ar)city.ar else city.en,color=MaterialTheme.colorScheme.primary,fontWeight=FontWeight.SemiBold,fontSize=14.sp)
      Text(if(ar)"مواقيت الصلاة" else "Prayer times",fontSize=25.sp,fontWeight=FontWeight.Bold,color=MaterialTheme.colorScheme.onSurface)
@@ -190,7 +190,7 @@ class MainActivity:ComponentActivity(){
  t.entries().forEach{(k,v)->
   val isSelected=selected==k
   val isNext=selected==null&&k==next
-  Card(onClick={haptic.performHapticFeedback(HapticFeedbackType.LongPress);onSelect(k)},shape=RoundedCornerShape(20.dp),colors=CardDefaults.cardColors(containerColor=if(isSelected)Color(0xD52B5278) else if(isNext)Color(0xB51A2A3D) else Glass),border=BorderStroke(1.dp,if(isSelected)Blue.copy(alpha=.78f) else if(isNext)Blue.copy(alpha=.42f) else GlassBorder),modifier=Modifier.fillMaxWidth().animateContentSize()){
+  Card(onClick={haptic.performHapticFeedback(HapticFeedbackType.LongPress);onSelect(k)},shape=RoundedCornerShape(20.dp),colors=CardDefaults.cardColors(containerColor=if(isSelected)Color(0xD52A3039) else if(isNext)Color(0xB51D252F) else Glass),border=BorderStroke(1.dp,if(isSelected)Color.White.copy(alpha=.72f) else if(isNext)Color.White.copy(alpha=.38f) else GlassBorder),modifier=Modifier.fillMaxWidth().animateContentSize()){
    Row(Modifier.fillMaxWidth().padding(horizontal=17.dp,vertical=15.dp),horizontalArrangement=Arrangement.SpaceBetween,verticalAlignment=Alignment.CenterVertically){
     Row(verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(12.dp)){
      Box(Modifier.size(38.dp).clip(CircleShape).background(if(isSelected||isNext)MaterialTheme.colorScheme.primary.copy(alpha=.20f) else MaterialTheme.colorScheme.surfaceVariant),contentAlignment=Alignment.Center){Text(when(k){"fajr"->"☾";"sunrise"->"☀";"dhuhr"->"◉";"asr"->"◷";"maghrib"->"◒";else->"☽"},color=MaterialTheme.colorScheme.primary,fontSize=17.sp)}
@@ -208,7 +208,7 @@ class MainActivity:ComponentActivity(){
   Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.SpaceBetween,verticalAlignment=Alignment.CenterVertically){Text(if(ar)"الإعدادات" else "Settings",fontSize=26.sp,fontWeight=FontWeight.Bold);FilledTonalButton(onClick={developerBack()},shape=RoundedCornerShape(14.dp),contentPadding=PaddingValues(horizontal=16.dp,vertical=9.dp)){Text(if(ar)"رجوع  ‹" else "‹  Back",fontWeight=FontWeight.SemiBold)}}
   Card(shape=RoundedCornerShape(22.dp),colors=CardDefaults.cardColors(containerColor=Glass),border=BorderStroke(1.dp,GlassBorder),modifier=Modifier.fillMaxWidth().animateContentSize()){Column(Modifier.padding(14.dp)){Text(if(ar)"اللغة" else "Language");Row{FilterChip(lang=="ar",{setLang("ar")},{Text("العربية")});Spacer(Modifier.width(8.dp));FilterChip(lang=="en",{setLang("en")},{Text("English")})}}}
   Card(colors=CardDefaults.cardColors(containerColor=Glass),border=BorderStroke(1.dp,GlassBorder),shape=RoundedCornerShape(22.dp)){Column(Modifier.padding(14.dp)){Text(if(ar)"المدينة" else "City");cityList.forEach{c->Row(verticalAlignment=Alignment.CenterVertically){RadioButton(city==c.id,{setCity(c.id)});Text(if(ar)c.ar else c.en)}}}}
-  Card(colors=CardDefaults.cardColors(containerColor=MaterialTheme.colorScheme.surface)){Column(Modifier.padding(14.dp)){Text(if(ar)"طريقة حساب المواقيت" else "Calculation method");listOf("egypt" to (if(ar)"الهيئة المصرية" else "Egyptian Survey"),"mwl" to "Muslim World League","isna" to "ISNA").forEach{(id,label)->Row(verticalAlignment=Alignment.CenterVertically){RadioButton(method==id,{setMethod(id)});Text(label)}}}}
+  Card(shape=RoundedCornerShape(22.dp),colors=CardDefaults.cardColors(containerColor=Glass),border=BorderStroke(1.dp,GlassBorder)){Column(Modifier.padding(14.dp)){Text(if(ar)"طريقة حساب المواقيت" else "Calculation method");listOf("egypt" to (if(ar)"الهيئة المصرية" else "Egyptian Survey"),"mwl" to "Muslim World League","isna" to "ISNA").forEach{(id,label)->Row(verticalAlignment=Alignment.CenterVertically){RadioButton(method==id,{setMethod(id)});Text(label)}}}}
   Card(colors=CardDefaults.cardColors(containerColor=MaterialTheme.colorScheme.surface)){Column(Modifier.padding(14.dp)){Text(if(ar)"حساب العصر" else "Asr method");Row(verticalAlignment=Alignment.CenterVertically){RadioButton(!hanafi,{setHanafi(false)});Text(if(ar)"قياسي" else "Standard")};Row(verticalAlignment=Alignment.CenterVertically){RadioButton(hanafi,{setHanafi(true)});Text(if(ar)"حنفي" else "Hanafi")}}}
   Text(if(ar)"تعديل المواقيت بالدقائق" else "Minute adjustments",color=MaterialTheme.colorScheme.primary,fontWeight=FontWeight.Bold)
   keys.forEach{k->Card(colors=CardDefaults.cardColors(containerColor=MaterialTheme.colorScheme.surface)){Row(Modifier.fillMaxWidth().padding(horizontal=13.dp,vertical=12.dp),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.SpaceBetween){Text(if(ar)arNames[k]!! else enNames[k]!!);TextButton(onClick={haptic.performHapticFeedback(HapticFeedbackType.LongPress);setOffs(offs+(k to ((offs[k]?:0)-1)))}){Text("−")};Text((offs[k]?:0).toString(),color=MaterialTheme.colorScheme.primary);TextButton(onClick={haptic.performHapticFeedback(HapticFeedbackType.LongPress);setOffs(offs+(k to ((offs[k]?:0)+1)))}){Text("+")}}}}
