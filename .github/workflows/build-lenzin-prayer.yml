@@ -47,6 +47,19 @@ jobs:
           mkdir -p app/src/main/res/drawable-nodpi
           curl -L --fail --retry 3 "https://raw.githubusercontent.com/ZineFather/Pray-app/main/zinefather.jpg" -o app/src/main/res/drawable-nodpi/zinefather.jpg
 
+      - name: Restore stable APK signing key
+        id: stable-signing
+        uses: actions/cache@v4
+        with:
+          path: ~/.android/debug.keystore
+          key: lazine-prayer-debug-signing-v1
+
+      - name: Create stable APK signing key (first build only)
+        if: steps.stable-signing.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p ~/.android
+          keytool -genkeypair -v -keystore ~/.android/debug.keystore -storepass android -alias androiddebugkey -keypass android -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Android Debug,O=LaZine Prayer,C=EG"
+
       - name: Build APK
         run: |
           gradle :app:assembleDebug
