@@ -65,8 +65,8 @@ jobs:
           MODERN_APK=$(find app/build/outputs/apk/modern/debug -maxdepth 1 -type f -name '*.apk' -print -quit)
           test -n "$LEGACY_APK"
           test -n "$MODERN_APK"
-          cp "$LEGACY_APK" "release/LaZinePrayer-Android7-Legacy-${VERSION// /-}.apk"
-          cp "$MODERN_APK" "release/LaZinePrayer-Modern-${VERSION// /-}.apk"
+          cp "$LEGACY_APK" "release/02-LaZinePrayer-Android7-Legacy-${VERSION// /-}.apk"
+          cp "$MODERN_APK" "release/01-LaZinePrayer-Modern-${VERSION// /-}.apk"
           echo "APP_VERSION=$VERSION" >> "$GITHUB_ENV"
           echo "RELEASE_TAG=v${VERSION// /-}-build-${GITHUB_RUN_NUMBER}" >> "$GITHUB_ENV"
 
@@ -77,11 +77,21 @@ jobs:
           name: LaZine Prayer ${{ env.APP_VERSION }}
           target_commitish: ${{ github.sha }}
           files: |
-            release/LaZinePrayer-Android7-Legacy-${{ env.APP_VERSION }}.apk
-            release/LaZinePrayer-Modern-${{ env.APP_VERSION }}.apk
+            release/02-LaZinePrayer-Android7-Legacy-${{ env.APP_VERSION }}.apk
+            release/01-LaZinePrayer-Modern-${{ env.APP_VERSION }}.apk
           generate_release_notes: true
           make_latest: true
           body: |
+            ## ⚠️ مهم — اختار النسخة الصحيحة
+            **حمّل أول ملف (01 - Modern) لمعظم الهواتف التي تعمل بنظام Android 8.0 أو أحدث.**
+            **حمّل ثاني ملف (02 - Android 7 Legacy) فقط إذا كان جهازك يعمل بنظام Android 7.0 أو 7.1.**
+            النسختان منفصلتان ولا يمكن تثبيت إحداهما كتحديث للأخرى.
+
+            ## 🇬🇧 IMPORTANT — Choose the correct APK
+            **Download the first file (01 - Modern) for Android 8.0 and newer.**
+            **Download the second file (02 - Android 7 Legacy) only for Android 7.0/7.1.**
+            These are separate apps; one cannot update or replace the other.
+
             ## 🇪🇬 التغييرات
             الإصدار يحتوي على ملفين:
             - **Android 7 Legacy:** للأجهزة التي تعمل بنظام Android 7.0 أو 7.1 (API 24–25).
