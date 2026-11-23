@@ -55,15 +55,19 @@ jobs:
           mkdir -p ~/.android
           keytool -genkeypair -v -keystore ~/.android/debug.keystore -storepass android -alias androiddebugkey -keypass android -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Android Debug,O=LaZine Prayer,C=EG"
 
-      - name: Build APK
+      - name: Build Android 7 and modern APKs
         run: |
-          gradle :app:assembleDebug
+          gradle :app:assembleLegacyDebug :app:assembleModernDebug
           VERSION=$(grep -m1 'versionName' app/build.gradle.kts | cut -d '"' -f2)
           test -n "$VERSION"
           mkdir -p release
-          cp app/build/outputs/apk/debug/app-debug.apk "release/LaZinePrayer-${VERSION// /-}.apk"
+          LEGACY_APK=$(find app/build/outputs/apk/legacy/debug -maxdepth 1 -type f -name '*.apk' -print -quit)
+          MODERN_APK=$(find app/build/outputs/apk/modern/debug -maxdepth 1 -type f -name '*.apk' -print -quit)
+          test -n "$LEGACY_APK"
+          test -n "$MODERN_APK"
+          cp "$LEGACY_APK" "release/LaZinePrayer-Android7-Legacy-${VERSION// /-}.apk"
+          cp "$MODERN_APK" "release/LaZinePrayer-Modern-${VERSION// /-}.apk"
           echo "APP_VERSION=$VERSION" >> "$GITHUB_ENV"
-          echo "APK_PATH=release/LaZinePrayer-${VERSION// /-}.apk" >> "$GITHUB_ENV"
           echo "RELEASE_TAG=v${VERSION// /-}-build-${GITHUB_RUN_NUMBER}" >> "$GITHUB_ENV"
 
       - name: Publish GitHub Release
@@ -72,15 +76,21 @@ jobs:
           tag_name: ${{ env.RELEASE_TAG }}
           name: LaZine Prayer ${{ env.APP_VERSION }}
           target_commitish: ${{ github.sha }}
-          files: ${{ env.APK_PATH }}
+          files: |
+            release/LaZinePrayer-Android7-Legacy-${{ env.APP_VERSION }}.apk
+            release/LaZinePrayer-Modern-${{ env.APP_VERSION }}.apk
           generate_release_notes: true
           make_latest: true
           body: |
             ## 🇪🇬 التغييرات
-            إصدار جديد من LaZine Prayer. راجع سجل التغييرات التلقائي بالأسفل لمعرفة التعديلات المضافة.
+            الإصدار يحتوي على ملفين:
+            - **Android 7 Legacy:** للأجهزة التي تعمل بنظام Android 7.0 أو 7.1 (API 24–25).
+            - **Modern:** للأجهزة التي تعمل بنظام Android 8.0 أو أحدث (API 26+).
 
             ## 🇬🇧 What's changed
-            New LaZine Prayer build. See the automatically generated changelog below for the included changes.
+            This release includes two APKs:
+            - **Android 7 Legacy:** for Android 7.0 and 7.1 devices (API 24–25).
+            - **Modern:** for Android 8.0 and newer (API 26+).
 
             ---
             **APK فقط مرفق كملف إصدار.** كود المصدر متاح من قسم **Source code** الذي ينشئه GitHub تلقائيًا.
