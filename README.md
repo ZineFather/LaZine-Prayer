@@ -1,36 +1,40 @@
 # LaZine Prayer
 
-**LaZine Prayer** is a free, open-source Android app for prayer times, built with Kotlin and Jetpack Compose.
+🇪🇬 **الوصف بالعربية**
 
-## 🇪🇬 العربية
+LaZine Prayer هو تطبيق مجاني ومفتوح المصدر لمواقيت الصلاة، صُمم ليكون بسيطًا وآمنًا وخاليًا من الإعلانات.
 
-تطبيق مجاني ومفتوح المصدر لمواقيت الصلاة، بواجهة عربية وإنجليزية وحسابات تعمل دون اتصال بالإنترنت.
+- 🆓 مجاني بالكامل، بدون اشتراكات أو إعلانات.
+- 🔓 مفتوح المصدر، ويمكن للجميع مراجعة الكود البرمجي.
+- 🔒 لا يحتاج إلى اتصال بالإنترنت لحساب مواقيت الصلاة.
+- 🛡️ لا يحتوي على إعلانات أو أدوات تتبع مدمجة.
+- ✅ نتائج فحص Google Play Protect مرفقة في الصور أدناه.
 
-- مجاني بالكامل، بدون إعلانات أو اشتراكات.
-- لا يحتوي على أدوات إعلانات أو تحليلات أو تتبّع مدمجة.
-- لا يطلب إذن الإنترنت؛ حساب المواقيت يتم محليًا على الجهاز.
-- إذن التشغيل الذي يظهر للمستخدم أثناء الاستخدام هو إذن الإشعارات على إصدارات أندرويد المدعومة.
-- يمكن مراجعة الصلاحيات وكود المصدر علنًا.
+هدفنا تقديم تطبيق موثوق يحترم خصوصية المستخدم ويمنحه تجربة واضحة وخالية من الإزعاج.
 
-**توضيح الصلاحيات:** يعلن التطبيق أيضًا عن صلاحيات نظامية لجدولة التنبيهات الدقيقة، واستقبال إعادة تشغيل الجهاز، وتشغيل خدمة الأذان في المقدمة. هذه ليست كلها نوافذ أذونات تشغيل يوافق عليها المستخدم؛ وقد يعرض أندرويد صفحة إعداد خاصة بالتنبيهات الدقيقة حسب إصدار النظام.
+🇬🇧 **English Description**
 
-## 🇬🇧 English
+LaZine Prayer is a free and open-source prayer times application, designed to be simple, privacy-friendly, and completely ad-free.
 
-A free and open-source prayer-times app with Arabic and English support and fully offline prayer-time calculations.
+- 🆓 100% free — no subscriptions or advertisements.
+- 🔓 Open source — anyone can review the source code.
+- 🔒 Works offline to calculate prayer times.
+- 🛡️ No built-in ads or tracking tools.
+- ✅ Google Play Protect scan results are provided in the screenshots below.
 
-- Free to use, with no ads or subscriptions.
-- No built-in advertising, analytics, or tracking SDKs.
-- Does not request the Internet permission; prayer-time calculations run locally on the device.
-- The runtime permission prompt shown by the app is for notifications on supported Android versions.
-- Permissions and source code are available for public review.
+Our goal is to provide a reliable prayer times app that respects user privacy and offers a clean, distraction-free experience.
 
-**Permission note:** The app also declares Android system permissions for exact alarms, receiving device boot events, and running the Adhan foreground service. These are not all runtime permission dialogs; Android may show a separate special-access settings page for exact alarms depending on the OS version.
+---
 
-## 🔎 Security & transparency
+## 🛡️ Security & Transparency | الأمان والشفافية
 
-The source code and Android manifest are public so anyone can inspect the app's behavior and declared permissions. Google Play Protect screenshots, when included in the `Screenshots/` folder, document the scan result for the exact APK and scan date shown. A scan result is useful evidence, but it is not an absolute guarantee that every build is 100% risk-free.
+The screenshots below show the security scan results from Google Play Protect for the tested APK. We encourage users to review the source code and verify the APK before installation.
 
-## 📸 Screenshots & scan evidence
+الصور أدناه تعرض نتائج فحص Google Play Protect لملف APK الذي تم اختباره. نشجع المستخدمين على مراجعة الكود المصدري والتحقق من ملف APK قبل التثبيت.
+
+**Permission transparency:** The app requests notification permission at runtime. Its manifest also declares Android system permissions for exact alarms, boot rescheduling and Adhan playback. It does not declare the Internet permission. A clean scan is useful evidence for the exact APK tested, but no single scanner can guarantee that every build is 100% risk-free.
+
+## 📸 Screenshots | لقطات الشاشة
 
 ### App interface
 ![LaZine Prayer home screen](Screenshots/Screenshot_20261123_010836.jpg)
@@ -39,24 +43,39 @@ The source code and Android manifest are public so anyone can inspect the app's 
 ![Android notification permission prompt](Screenshots/Screenshot_20261123_025802_Permission%20controller.jpg)
 
 ### Google Play Protect
-![Google Play Protect result for the tested APK](Screenshots/Screenshot_20261123_031501_Google%20Play%20Store.jpg)
+![Google Play Protect scan result](Screenshots/Screenshot_20261123_031501_Google%20Play%20Store.jpg)
 
-The Play Protect screenshot shows the result for the APK visible in that screenshot at the time it was scanned. It is evidence for that specific scan, not a blanket guarantee for every future build.
+## ✨ Features | المميزات
+
+- Offline prayer-time calculations.
+- Alexandria, Cairo and Makkah presets.
+- Egyptian Survey, MWL and ISNA calculation methods.
+- Standard and Hanafi Asr settings.
+- Arabic and English interface.
+- Full Adhan, short tone, notification, silent and off modes.
+- Custom audio file selection.
+- Next-prayer countdown and selectable prayer countdown.
+
+## 👨‍💻 Developer | المطور
+
+**ZineFather** — Android developer, Samsung ROM maintainer and founder of ZineROM.
+
+مطور أندرويد ورومات Samsung ومؤسس ZineROM، يهتم بتطوير أدوات وتطبيقات أندرويد وتحسين دعم الأجهزة وتجربة الاستخدام.
+
+- Telegram: [@ZineFather](https://t.me/ZineFather)
+- Bug reports: [Report a bug](https://t.me/ZineROMProject/9)
+- Source code: [GitHub repository](https://github.com/ZineFather/LaZine-Prayer)
 
 ## App details
 
 - Package: `com.zine.prayer`
 - Minimum Android: 8.0 (API 26)
-- Offline solar calculations; no Internet permission.
-- Alexandria, Cairo and Makkah presets.
-- Arabic/English interface, calculation method, Asr school and minute adjustments.
-- Separate notification channels for full Adhan, ordinary, short-tone and silent alerts.
-- Alarm rescheduling after boot, system time and timezone changes.
+- Current version: 4.6.2
 
-## Build
+## Build from source
 
 ```bash
 gradle :app:assembleDebug
 ```
 
-The GitHub Actions workflow builds the APK from the `main` branch and publishes it in GitHub Releases. The release contains the APK; GitHub also provides source-code archives automatically.
+GitHub Actions builds the APK from `main` and publishes it in GitHub Releases. GitHub also provides source-code archives automatically.

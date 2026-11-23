@@ -164,12 +164,22 @@ class MainActivity:ComponentActivity(){
 }
 @Composable private fun Developer(lang:String,back:()->Unit,telegram:()->Unit,bug:()->Unit){
  val ar=lang=="ar"
- Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal=18.dp, vertical=12.dp),verticalArrangement=Arrangement.spacedBy(16.dp)){
-  TextButton(onClick=back,contentPadding=PaddingValues(horizontal=8.dp,vertical=6.dp)){Text("‹  "+if(ar)"رجوع للإعدادات" else "Back to Settings",color=MaterialTheme.colorScheme.primary,fontSize=14.sp)}
-  Text(if(ar)"نبذة عن المطور" else "ABOUT THE DEVELOPER",fontSize=13.sp,fontWeight=FontWeight.Bold,color=MaterialTheme.colorScheme.primary)
-  Card(colors=CardDefaults.cardColors(containerColor=MaterialTheme.colorScheme.surfaceVariant),shape=RoundedCornerShape(22.dp),modifier=Modifier.fillMaxWidth()){
-   Text(if(ar)"مطور أندرويد ومطور رومات مخصصة، ومؤسس ZineROM. أعمل على تطوير رومات Samsung وأدوات أندرويد وتطبيقات تهدف إلى تحسين تجربة الاستخدام ودعم الأجهزة." else "Android developer and custom ROM maintainer, and founder of ZineROM. I work on Samsung custom ROMs, Android tools and applications focused on improving usability and device support.",modifier=Modifier.padding(20.dp),fontSize=15.sp,lineHeight=24.sp,color=MaterialTheme.colorScheme.onSurfaceVariant)
+ Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal=18.dp,vertical=12.dp),verticalArrangement=Arrangement.spacedBy(16.dp)){
+  TextButton(onClick=back){Text("‹  "+if(ar)"رجوع للإعدادات" else "Back to Settings")}
+  Card(colors=CardDefaults.cardColors(containerColor=MaterialTheme.colorScheme.surfaceVariant),shape=RoundedCornerShape(28.dp),modifier=Modifier.fillMaxWidth()){
+   Column(Modifier.fillMaxWidth().padding(24.dp),horizontalAlignment=Alignment.CenterHorizontally,verticalArrangement=Arrangement.spacedBy(9.dp)){
+    Box(Modifier.size(88.dp).clip(CircleShape).background(Brush.linearGradient(listOf(MaterialTheme.colorScheme.primary.copy(alpha=.28f),MaterialTheme.colorScheme.secondary.copy(alpha=.18f)))),contentAlignment=Alignment.Center){Text("Z",fontSize=42.sp,fontWeight=FontWeight.Bold,color=MaterialTheme.colorScheme.primary)}
+    Text("ZineFather",fontSize=27.sp,fontWeight=FontWeight.Bold,color=MaterialTheme.colorScheme.onSurface)
+    Text("@ZineFather",fontSize=14.sp,color=MaterialTheme.colorScheme.primary)
+    Text("Android Developer • ROM Maintainer",fontSize=12.sp,color=MaterialTheme.colorScheme.onSurfaceVariant)
+   }
   }
+  Text(if(ar)"نبذة عن المطور" else "ABOUT THE DEVELOPER",fontSize=12.sp,fontWeight=FontWeight.Bold,color=MaterialTheme.colorScheme.primary)
+  Card(colors=CardDefaults.cardColors(containerColor=MaterialTheme.colorScheme.surface),modifier=Modifier.fillMaxWidth()){
+   Text(if(ar)"مطور رومات أندرويد ومؤسس ZineROM. يعمل على تطوير رومات Samsung وأدوات أندرويد ومواقع وتطبيقات، ويهتم بتحسين تجربة الاستخدام ودعم الأجهزة." else "Android ROM developer and founder of ZineROM. Focused on Samsung custom ROMs, Android tools, websites and apps, with an emphasis on usability and device support.",modifier=Modifier.padding(18.dp),fontSize=14.sp,lineHeight=22.sp,color=MaterialTheme.colorScheme.onSurfaceVariant)
+  }
+  Button(onClick=telegram,modifier=Modifier.fillMaxWidth()){Text("Telegram • @ZineFather")}
+  OutlinedButton(onClick=bug,modifier=Modifier.fillMaxWidth()){Text(if(ar)"الإبلاغ عن مشكلة" else "Report a bug")}
  }
 }
 private fun createChannel(c:Context){if(Build.VERSION.SDK_INT>=26){val nm=c.getSystemService(NotificationManager::class.java)
