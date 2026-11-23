@@ -24,7 +24,7 @@ jobs:
         run: |
           mkdir -p app/src/main/res/raw
           curl -L --fail --retry 3 "https://upload.wikimedia.org/wikipedia/commons/b/b0/Beautiful_adhan.ogg" -o app/src/main/res/raw/adhan-source.ogg
-          sudo apt-get update
+          sudo apt-get install -y ffmpeg
           sudo apt-get install -y ffmpeg
           ffmpeg -version
           ffmpeg -y -i app/src/main/res/raw/adhan-source.ogg -af "loudnorm=I=-16:TP=-1.5:LRA=11" -c:a libvorbis -q:a 6 app/src/main/res/raw/adhan.ogg
