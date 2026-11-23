@@ -70,6 +70,42 @@ jobs:
           echo "APP_VERSION=$VERSION" >> "$GITHUB_ENV"
           echo "RELEASE_TAG=v${VERSION// /-}-build-${GITHUB_RUN_NUMBER}" >> "$GITHUB_ENV"
 
+      - name: Verify APK integrity, signatures, and package metadata
+        shell: bash
+        run: |
+          set -euo pipefail
+          SDK_ROOT="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-}}"
+          test -n "$SDK_ROOT"
+          BUILD_TOOLS="$(find "$SDK_ROOT/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -n1)"
+          test -x "$BUILD_TOOLS/apksigner"
+          test -x "$BUILD_TOOLS/aapt"
+          test -x "$BUILD_TOOLS/zipalign"
+
+          MODERN_APK="$(find release -maxdepth 1 -name '01-LaZinePrayer-Modern-*.apk' -print -quit)"
+          LEGACY_APK="$(find release -maxdepth 1 -name '02-LaZinePrayer-Android7-Legacy-*.apk' -print -quit)"
+          test -s "$MODERN_APK"
+          test -s "$LEGACY_APK"
+
+          for APK in "$MODERN_APK" "$LEGACY_APK"; do
+            echo "Checking $APK"
+            unzip -t "$APK"
+            "$BUILD_TOOLS/zipalign" -c -v 4 "$APK"
+            "$BUILD_TOOLS/apksigner" verify --verbose --print-certs "$APK"
+          done
+
+          "$BUILD_TOOLS/aapt" dump badging "$MODERN_APK" | tee /tmp/modern-badging.txt
+          grep -Fq "package: name='com.zine.prayer'" /tmp/modern-badging.txt
+          grep -Fq "sdkVersion:'26'" /tmp/modern-badging.txt
+          grep -Fq "targetSdkVersion:'35'" /tmp/modern-badging.txt
+
+          "$BUILD_TOOLS/aapt" dump badging "$LEGACY_APK" | tee /tmp/legacy-badging.txt
+          grep -Fq "package: name='com.zine.prayer.legacy'" /tmp/legacy-badging.txt
+          grep -Fq "sdkVersion:'24'" /tmp/legacy-badging.txt
+          grep -Fq "targetSdkVersion:'35'" /tmp/legacy-badging.txt
+
+          sha256sum "$MODERN_APK" "$LEGACY_APK"
+          echo "Both APKs passed archive, alignment, signature, and manifest checks."
+
       - name: Publish GitHub Release
         uses: softprops/action-gh-release@v2
         with:
