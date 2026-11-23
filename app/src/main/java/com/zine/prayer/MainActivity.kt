@@ -145,17 +145,17 @@ class MainActivity:ComponentActivity(){
    Column(Modifier.fillMaxWidth().padding(vertical=26.dp,horizontal=20.dp),horizontalAlignment=Alignment.CenterHorizontally,verticalArrangement=Arrangement.spacedBy(9.dp)){
     Box(contentAlignment=Alignment.BottomEnd){
      Image(painter=painterResource(id=R.drawable.zinefather),contentDescription="ZineFather developer profile",modifier=Modifier.size(116.dp).clip(CircleShape),contentScale=ContentScale.Crop)
-     Surface(shape=CircleShape,color=Color(0xFF173F35),modifier=Modifier.size(25.dp)){Box(contentAlignment=Alignment.Center){Text("✓",color=Color(0xFF8BE0B2),fontSize=13.sp,fontWeight=FontWeight.Bold)}}
+     Surface(shape=CircleShape,color=MaterialTheme.colorScheme.secondaryContainer,modifier=Modifier.size(25.dp)){Box(contentAlignment=Alignment.Center){Text("✓",color=MaterialTheme.colorScheme.onSecondaryContainer,fontSize=13.sp,fontWeight=FontWeight.Bold)}}
     }
     Text("ZineFather",fontSize=27.sp,fontWeight=FontWeight.Bold,color=Color.White)
     Text("@ZineFather",fontSize=14.sp,color=Blue)
-    Surface(shape=RoundedCornerShape(50),color=MaterialTheme.colorScheme.secondaryContainer){Text(if(ar)"Android Developer • ROM Maintainer" else "Android Developer • ROM Maintainer",modifier=Modifier.padding(horizontal=13.dp,vertical=7.dp),fontSize=11.sp,color=Color(0xFFD8E9FF))}
+    Surface(shape=RoundedCornerShape(50),color=MaterialTheme.colorScheme.secondaryContainer){Text(if(ar)"Android Developer • ROM Maintainer" else "Android Developer • ROM Maintainer",modifier=Modifier.padding(horizontal=13.dp,vertical=7.dp),fontSize=11.sp,color=MaterialTheme.colorScheme.onSecondaryContainer)}
    }
   }
   Column(verticalArrangement=Arrangement.spacedBy(8.dp)){
    Text(if(ar)"نبذة عن المطور" else "ABOUT THE DEVELOPER",fontSize=12.sp,fontWeight=FontWeight.Bold,color=Blue)
    Card(colors=CardDefaults.cardColors(containerColor=Panel),shape=RoundedCornerShape(20.dp),modifier=Modifier.fillMaxWidth()){
-    Text(if(ar)"مطور رومات أندرويد ومؤسس ZineROM. يعمل على تطوير رومات Samsung وأدوات أندرويد ومواقع وتطبيقات، ويهتم بتحسين تجربة الاستخدام ودعم الأجهزة." else "Android ROM developer and founder of ZineROM. Focused on Samsung custom ROMs, Android tools, websites and apps, with an emphasis on usability and device support.",modifier=Modifier.padding(18.dp),fontSize=14.sp,lineHeight=22.sp,color=Color(0xFFE0E6EF))
+    Text(if(ar)"مطور رومات أندرويد ومؤسس ZineROM. يعمل على تطوير رومات Samsung وأدوات أندرويد ومواقع وتطبيقات، ويهتم بتحسين تجربة الاستخدام ودعم الأجهزة." else "Android ROM developer and founder of ZineROM. Focused on Samsung custom ROMs, Android tools, websites and apps, with an emphasis on usability and device support.",modifier=Modifier.padding(18.dp),fontSize=14.sp,lineHeight=22.sp,color=MaterialTheme.colorScheme.onSurfaceVariant)
    }
   }
   Column(verticalArrangement=Arrangement.spacedBy(10.dp)){
