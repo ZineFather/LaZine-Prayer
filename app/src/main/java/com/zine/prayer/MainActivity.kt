@@ -44,7 +44,7 @@ import kotlinx.coroutines.delay
 private val Black=Color(0xFF050609); private val Panel=Color(0xFF111722); private val Blue=Color(0xFF83BFFF)
 private const val PREF="lenzin_prayer_settings"; private const val BUG="https://t.me/ZineROMProject/9"; private const val DEV="https://t.me/ZineFather"; private const val COMMUNITY="https://t.me/ZineROMProject/7098"
 private data class AdhanVoice(val id:String,val ar:String,val en:String,val note:String)
-private val adhanVoices=listOf(AdhanVoice("adam","الأذان الأساسي","الأذان الأساسي","تسجيل Adam-synagda • CC0 1.0"),AdhanVoice("sabah","صباح فخري","صباح فخري","الملكية العامة • 2:38"),AdhanVoice("aqib","عاقب عزيز","عاقب عزيز","تسجيل Aaqib Azeez • CC BY-SA 4.0"),AdhanVoice("andrewler","أندرو لير","أندرو لير","تسجيل Andrewler • CC BY-SA 4.0"))
+private val adhanVoices=listOf(AdhanVoice("adam","الأذان الأساسي","الأذان الأساسي","تسجيل آدم سيناجدا • CC0 1.0"),AdhanVoice("sabah","صباح فخري","صباح فخري","الملكية العامة • 2:38"),AdhanVoice("aqib","عاقب عزيز","عاقب عزيز","تسجيل عاقب عزيز • CC BY-SA 4.0"),AdhanVoice("andrewler","أندرو لير","أندرو لير","تسجيل أندرو لير • CC BY-SA 4.0"))
 private data class City(val id:String,val ar:String,val en:String,val lat:Double,val lon:Double,val zone:String="Africa/Cairo")
 private val cityList=listOf(City("alex","الإسكندرية","Alexandria",31.2001,29.9187),City("cairo","القاهرة","Cairo",30.0444,31.2357),City("mecca","مكة المكرمة","Makkah",21.4225,39.8262,"Asia/Riyadh"))
 private val keys=listOf("fajr","dhuhr","asr","maghrib","isha")
