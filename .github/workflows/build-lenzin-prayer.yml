@@ -21,6 +21,8 @@ jobs:
         run: |
           mkdir -p app/src/main/res/raw
           curl -L --fail --retry 3 "https://upload.wikimedia.org/wikipedia/commons/b/b0/Beautiful_adhan.ogg" -o app/src/main/res/raw/adhan-source.ogg
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg
           ffmpeg -version
           ffmpeg -y -i app/src/main/res/raw/adhan-source.ogg -af "loudnorm=I=-16:TP=-1.5:LRA=11" -c:a libvorbis -q:a 6 app/src/main/res/raw/adhan.ogg
           curl -L --fail --retry 3 "https://commons.wikimedia.org/wiki/Special:Redirect/file/Call_to_prayer_by_Sabah_Fakhry.mp3" -o app/src/main/res/raw/sabah-source.mp3
