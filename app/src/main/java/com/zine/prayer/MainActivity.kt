@@ -47,7 +47,7 @@ import java.time.format.DateTimeFormatter
 import java.util.Locale
 import kotlinx.coroutines.delay
 private val Black=Color(0xFF050609); private val Panel=Color(0xFF111722); private val Blue=Color(0xFF83BFFF)
-private const val PREF="lenzin_prayer_settings"; private const val BUG="https://t.me/ZineROMProject/9"; private const val DEV="https://t.me/ZineFather"; private const val COMMUNITY="https://t.me/ZineROMProject/7098"
+private const val PREF="lenzin_prayer_settings"
 private data class AdhanVoice(val id:String,val ar:String,val en:String,val note:String)
 private val adhanVoices=listOf(AdhanVoice("adam","الأذان الأساسي","الأذان الأساسي","تسجيل آدم سيناجدا • CC0 1.0"),AdhanVoice("sabah","صباح فخري","صباح فخري","الملكية العامة • 2:38"),AdhanVoice("aqib","عاقب عزيز","عاقب عزيز","تسجيل عاقب عزيز • CC BY-SA 4.0"),AdhanVoice("andrewler","أندرو لير","أندرو لير","تسجيل أندرو لير • CC BY-SA 4.0"))
 private data class City(val id:String,val ar:String,val en:String,val lat:Double,val lon:Double,val zone:String="Africa/Cairo")
@@ -109,8 +109,8 @@ class MainActivity:ComponentActivity(){
    0->Home(lang,city,date,hijri,times,selectedPrayer,countdownName,countdownRemain,nextName,selectPrayer,resetSelectedPrayer)
    1->SettingsScreen(lang,{lang=it},cityId,{cityId=it},method,{method=it},hanafi,{hanafi=it},offsets,{offsets=it},modes,{modes=it},
     {if(Build.VERSION.SDK_INT>=31)runCatching{ctx.startActivity(Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))};if(Build.VERSION.SDK_INT>=33)runCatching{ctx.startActivity(Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).putExtra(Settings.EXTRA_APP_PACKAGE,ctx.packageName).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))}},
-    {page=2},{open(BUG)},{open(COMMUNITY)},{open("https://github.com/ZineFather/LaZine-Prayer")},{audioPicker.launch(arrayOf("audio/*"))},{customAdhanUri=null;pref.edit().remove("custom_adhan_uri").apply()},customAdhanUri,adhanVoice,{adhanVoice=it},{page=0})
-   else->Developer(lang,{page=1},{open(DEV)},{open(BUG)})
+    {page=2},{open("https://github.com/ZineFather/LaZine-Prayer")},{audioPicker.launch(arrayOf("audio/*"))},{customAdhanUri=null;pref.edit().remove("custom_adhan_uri").apply()},customAdhanUri,adhanVoice,{adhanVoice=it},{page=0})
+   else->Developer(lang,{page=1})
   }
   }
   }
@@ -161,7 +161,7 @@ class MainActivity:ComponentActivity(){
   }
  }
 }
-@Composable private fun SettingsScreen(lang:String,setLang:(String)->Unit,city:String,setCity:(String)->Unit,method:String,setMethod:(String)->Unit,hanafi:Boolean,setHanafi:(Boolean)->Unit,offs:Map<String,Int>,setOffs:(Map<String,Int>)->Unit,modes:Map<String,String>,setModes:(Map<String,String>)->Unit,permissions:()->Unit,developer:()->Unit,bug:()->Unit,community:()->Unit,sourceCode:()->Unit,pickAudio:()->Unit,clearAudio:()->Unit,customAudio:String?,adhanVoice:String,setAdhanVoice:(String)->Unit,developerBack:()->Unit){
+@Composable private fun SettingsScreen(lang:String,setLang:(String)->Unit,city:String,setCity:(String)->Unit,method:String,setMethod:(String)->Unit,hanafi:Boolean,setHanafi:(Boolean)->Unit,offs:Map<String,Int>,setOffs:(Map<String,Int>)->Unit,modes:Map<String,String>,setModes:(Map<String,String>)->Unit,permissions:()->Unit,developer:()->Unit,sourceCode:()->Unit,pickAudio:()->Unit,clearAudio:()->Unit,customAudio:String?,adhanVoice:String,setAdhanVoice:(String)->Unit,developerBack:()->Unit){
  val ctx=androidx.compose.ui.platform.LocalContext.current
  val ar=lang=="ar"; Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(16.dp),verticalArrangement=Arrangement.spacedBy(10.dp)){
   Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.SpaceBetween,verticalAlignment=Alignment.CenterVertically){Text(if(ar)"الإعدادات" else "Settings",fontSize=26.sp,fontWeight=FontWeight.Bold);FilledTonalButton(onClick={developerBack()},shape=RoundedCornerShape(14.dp),contentPadding=PaddingValues(horizontal=16.dp,vertical=9.dp)){Text(if(ar)"رجوع  ‹" else "‹  Back",fontWeight=FontWeight.SemiBold)}}
@@ -178,12 +178,11 @@ class MainActivity:ComponentActivity(){
   keys.forEach{k->var expanded by remember(k){mutableStateOf(false)};Card(colors=CardDefaults.cardColors(containerColor=MaterialTheme.colorScheme.surface)){Column(Modifier.fillMaxWidth().padding(12.dp),verticalArrangement=Arrangement.spacedBy(8.dp)){Text(if(ar)arNames[k]!! else enNames[k]!!,color=MaterialTheme.colorScheme.onSurface,fontWeight=FontWeight.SemiBold);Row(verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(8.dp)){Box(Modifier.weight(1f)){OutlinedButton(onClick={expanded=true},modifier=Modifier.fillMaxWidth()){Text(when(modes[k]){"ADHAN"->if(ar)"أذان كامل" else "Full Adhan";"SHORT"->if(ar)"نغمة قصيرة" else "Short tone";"SILENT"->if(ar)"صامت" else "Silent";"OFF"->if(ar)"إيقاف" else "Off";else->if(ar)"إشعار عادي" else "Notification"})};DropdownMenu(expanded,{expanded=false}){listOf("ADHAN","SHORT","NOTIFICATION","SILENT","OFF").forEach{v->DropdownMenuItem(text={Text(when(v){"ADHAN"->if(ar)"أذان كامل" else "Full Adhan";"SHORT"->if(ar)"نغمة قصيرة" else "Short tone";"NOTIFICATION"->if(ar)"إشعار عادي" else "Notification";"SILENT"->if(ar)"صامت" else "Silent";else->if(ar)"إيقاف" else "Off"})},onClick={setModes(modes+(k to v));expanded=false})}}};val test=Intent(ctx,PrayerAlarmReceiver::class.java).setAction("com.zine.prayer.TEST").putExtra("prayer",k);OutlinedButton(onClick={ctx.sendBroadcast(test)}){Text(if(ar)"تجربة" else "Test")}};if(modes[k]=="ADHAN")Text(if(ar)"الأذان يعمل من ملف محلي مرفق داخل التطبيق." else "Adhan plays from an audio file bundled in the app.",color=MaterialTheme.colorScheme.onSurfaceVariant,fontSize=10.sp)}}}
   Button(onClick=permissions,modifier=Modifier.fillMaxWidth()){Text(if(ar)"إدارة أذونات الإشعارات والمنبهات" else "Notification & alarm permissions")}
   OutlinedButton(onClick=developer,modifier=Modifier.fillMaxWidth()){Text(if(ar)"About Developer • عن المطور" else "About Developer")}
-  OutlinedButton(onClick=bug,modifier=Modifier.fillMaxWidth()){Text(if(ar)"Report a Bug • الإبلاغ عن خطأ" else "Report a bug")}
-  OutlinedButton(onClick=community,modifier=Modifier.fillMaxWidth()){Text("مجتمع التطبيق • نقاشات ودعم LaZine Prayer")}
+
   OutlinedButton(onClick=sourceCode,modifier=Modifier.fillMaxWidth()){Text(if(ar)"Source Code • الكود المصدري على GitHub" else "Source Code • GitHub")}
  }
 }
-@Composable private fun Developer(lang:String,back:()->Unit,telegram:()->Unit,bug:()->Unit){
+@Composable private fun Developer(lang:String,back:()->Unit){
  val ar=lang=="ar"
  Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal=18.dp,vertical=12.dp),verticalArrangement=Arrangement.spacedBy(16.dp)){
   TextButton(onClick=back){Text("‹  "+if(ar)"رجوع للإعدادات" else "Back to Settings")}
@@ -198,8 +197,7 @@ class MainActivity:ComponentActivity(){
   Card(colors=CardDefaults.cardColors(containerColor=MaterialTheme.colorScheme.surface),modifier=Modifier.fillMaxWidth()){
    Text(if(ar)"مطور رومات أندرويد ومؤسس ZineROM. يعمل على تطوير رومات Samsung وأدوات أندرويد ومواقع وتطبيقات، ويهتم بتحسين تجربة الاستخدام ودعم الأجهزة." else "Android ROM developer and founder of ZineROM. Focused on Samsung custom ROMs, Android tools, websites and apps, with an emphasis on usability and device support.",modifier=Modifier.padding(18.dp),fontSize=14.sp,lineHeight=22.sp,color=MaterialTheme.colorScheme.onSurfaceVariant)
   }
-  Button(onClick=telegram,modifier=Modifier.fillMaxWidth()){Text("Telegram • @ZineFather")}
-  OutlinedButton(onClick=bug,modifier=Modifier.fillMaxWidth()){Text(if(ar)"الإبلاغ عن مشكلة" else "Report a bug")}
+
  }
 }
 private fun createChannel(c:Context){if(Build.VERSION.SDK_INT>=26){val nm=c.getSystemService(NotificationManager::class.java)
