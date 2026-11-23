@@ -10,8 +10,8 @@ android {
         applicationId = "com.zine.prayer"
         minSdk = 24
         targetSdk = 35
-        versionCode = 16
-        versionName = "4.6.8"
+        versionCode = 17
+        versionName = "4.6.9"
     }
     flavorDimensions += "androidSupport"
     productFlavors {
