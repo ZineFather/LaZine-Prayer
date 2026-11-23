@@ -73,12 +73,21 @@ The VirusTotal screenshot below documents the scan result for the exact APK that
 - Bug reports: [Report a bug](https://t.me/ZineROMProject/9)
 - Source code: [GitHub repository](https://github.com/ZineFather/LaZine-Prayer)
 
+## ⬇️ Download the correct APK | تحميل النسخة الصحيحة
+
+**Important:** GitHub Releases provides two separate APK files. Download only the one matching your Android version:
+
+1. **Modern (Android 8.0+ / API 26+):** this is the main app and the first download. Use it for Android 8, 9, 10, 11, 12, 13, 14, 15 and newer.
+2. **Android 7 Legacy (Android 7.0/7.1 / API 24–25):** download this only if your phone is running Android 7.0 or 7.1. It is a separate app and cannot update or replace the Modern app.
+
+**تحذير:** هتلاقي ملفين في قسم Releases. حمّل **Modern** لو جهازك Android 8 أو أحدث؛ ده الاختيار الطبيعي لمعظم الأجهزة. حمّل **Android 7 Legacy** فقط لو جهازك Android 7.0 أو 7.1. النسختان تطبيقان منفصلان، ومش هينفع تثبّت واحدة كتحديث للتانية.
+
 ## App details
 
 - Package: `com.zine.prayer`
 - Android 7 Legacy APK: Android 7.0–7.1 (API 24–25), package `com.zine.prayer.legacy`
 - Modern APK: Android 8.0+ (API 26+), package `com.zine.prayer`
-- Current version: 4.6.5
+- Current version: 4.6.6
 
 ## Build from source
 
