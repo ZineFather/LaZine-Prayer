@@ -77,8 +77,8 @@ jobs:
           name: LaZine Prayer ${{ env.APP_VERSION }}
           target_commitish: ${{ github.sha }}
           files: |
-            release/02-LaZinePrayer-Android7-Legacy-${{ env.APP_VERSION }}.apk
             release/01-LaZinePrayer-Modern-${{ env.APP_VERSION }}.apk
+            release/02-LaZinePrayer-Android7-Legacy-${{ env.APP_VERSION }}.apk
           generate_release_notes: true
           make_latest: true
           body: |
