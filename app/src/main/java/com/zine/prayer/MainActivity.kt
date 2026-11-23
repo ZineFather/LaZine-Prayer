@@ -78,12 +78,12 @@ class MainActivity:ComponentActivity(){
  val times=remember(date,city,hanafi,offsets,method){PrayerCalculator.calculate(date,city.lat,city.lon,zone,hanafi,offsets,method)}
  val tomorrow=date.plusDays(1)
  val tomorrowTimes=remember(tomorrow,city,hanafi,offsets,method){PrayerCalculator.calculate(tomorrow,city.lat,city.lon,zone,hanafi,offsets,method)}
- val upcoming=(listOf(date to times,tomorrow to tomorrowTimes)).flatMap{(day,pt)->pt.entries().filter{it.first in keys}.map{(key,hour)->Triple(key,day.atStartOfDay(zone).plusNanos((hour*3_600_000_000_000.0).toLong()),hour)}}.filter{it.second.toInstant().isAfter(now)}.minByOrNull{it.second.toInstant()}!!
+ val upcoming=(listOf(date to times,tomorrow to tomorrowTimes)).flatMap{(day,pt)->pt.entries().filter{it.first in keys}.map{(key,hour)->Triple(key,day.atStartOfDay(zone).toEpochSecond()*1000L+(hour*3_600_000.0).toLong(),hour)}}.filter{it.second>tick}.minByOrNull{it.second}!!
  val nextName=upcoming.first
- val remain=Duration.between(now,upcoming.second.toInstant()).seconds.coerceAtLeast(0)
- val selectedTarget=if(selectedPrayer==null) upcoming else (listOf(date to times,tomorrow to tomorrowTimes)).flatMap{(day,pt)->pt.entries().filter{it.first==selectedPrayer}.map{(key,hour)->day.atStartOfDay(zone).plusNanos((hour*3_600_000_000_000.0).toLong())}}.filter{it.toInstant().isAfter(now)}.minByOrNull{it.toInstant()}?:upcoming.second
+ val remain=((upcoming.second-tick)/1000L).coerceAtLeast(0)
+ val selectedTarget=if(selectedPrayer==null) upcoming.second else (listOf(date to times,tomorrow to tomorrowTimes)).flatMap{(day,pt)->pt.entries().filter{it.first==selectedPrayer}.map{(_,hour)->day.atStartOfDay(zone).toEpochSecond()*1000L+(hour*3_600_000.0).toLong()}}.filter{it>tick}.minOrNull()?:upcoming.second
  val countdownName=selectedPrayer?:nextName
- val countdownRemain=Duration.between(now,selectedTarget.toInstant()).seconds.coerceAtLeast(0)
+ val countdownRemain=((selectedTarget-tick)/1000L).coerceAtLeast(0)
  val hijri=runCatching{HijrahDate.from(date).toString()}.getOrDefault("")
  LaunchedEffect(times,date,modes,city,hanafi,offsets,method){reschedulePrayerAlarms(ctx)}
  Column(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background).statusBarsPadding()){
