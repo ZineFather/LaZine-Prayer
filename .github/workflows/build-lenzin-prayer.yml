@@ -50,7 +50,7 @@ jobs:
       - name: Build APK
         run: |
           gradle :app:assembleDebug
-          VERSION=$(sed -n 's/^[[:space:]]*versionName[[:space:]]*=[[:space:]]*"\\([^"]*\\)".*/\\1/p' app/build.gradle.kts | head -n 1)
+          VERSION=$(grep -m1 'versionName' app/build.gradle.kts | cut -d '"' -f2)
           test -n "$VERSION"
           mkdir -p release
           cp app/build/outputs/apk/debug/app-debug.apk "release/LaZinePrayer-${VERSION// /-}.apk"
