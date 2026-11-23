@@ -1,30 +1,36 @@
 name: Build LaZine Prayer APK
+
 concurrency:
   group: lazine-prayer-${{ github.ref }}
   cancel-in-progress: true
+
 on:
   workflow_dispatch:
   push:
     branches: [ main ]
+
 permissions:
-  contents: read
+  contents: write
+
 jobs:
-  build:
+  build-and-release:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '17'
+
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.13'
+
       - name: Add CC0 Adhan audio asset
         run: |
           mkdir -p app/src/main/res/raw
           curl -L --fail --retry 3 "https://upload.wikimedia.org/wikipedia/commons/b/b0/Beautiful_adhan.ogg" -o app/src/main/res/raw/adhan-source.ogg
-          sudo apt-get install -y ffmpeg
           sudo apt-get install -y ffmpeg
           ffmpeg -version
           ffmpeg -y -i app/src/main/res/raw/adhan-source.ogg -af "loudnorm=I=-16:TP=-1.5:LRA=11" -c:a libvorbis -q:a 6 app/src/main/res/raw/adhan.ogg
@@ -35,16 +41,40 @@ jobs:
           ffmpeg -y -i app/src/main/res/raw/aqib-source.mp3 -af "loudnorm=I=-16:TP=-1.5:LRA=11" -c:a libvorbis -q:a 6 app/src/main/res/raw/adhan_aqib.ogg
           ffmpeg -y -i app/src/main/res/raw/andrewler-source.ogg -af "loudnorm=I=-16:TP=-1.5:LRA=11" -c:a libvorbis -q:a 6 app/src/main/res/raw/adhan_andrewler.ogg
           rm app/src/main/res/raw/adhan-source.ogg app/src/main/res/raw/sabah-source.mp3 app/src/main/res/raw/aqib-source.mp3 app/src/main/res/raw/andrewler-source.ogg
+
       - name: Add developer profile image
         run: |
           mkdir -p app/src/main/res/drawable-nodpi
           curl -L --fail --retry 3 "https://raw.githubusercontent.com/ZineFather/Pray-app/main/zinefather.jpg" -o app/src/main/res/drawable-nodpi/zinefather.jpg
-      - name: Build release APK
+
+      - name: Build APK
         run: |
           gradle :app:assembleDebug
-          cp app/build/outputs/apk/debug/app-debug.apk app/build/outputs/apk/debug/LaZinePrayer-4.5.1-Hotfix.apk
-      - uses: actions/upload-artifact@v4
+          VERSION=$(sed -n 's/^[[:space:]]*versionName[[:space:]]*=[[:space:]]*"\\([^"]*\\)".*/\\1/p' app/build.gradle.kts | head -n 1)
+          test -n "$VERSION"
+          mkdir -p release
+          cp app/build/outputs/apk/debug/app-debug.apk "release/LaZinePrayer-${VERSION// /-}.apk"
+          echo "APP_VERSION=$VERSION" >> "$GITHUB_ENV"
+          echo "APK_PATH=release/LaZinePrayer-${VERSION// /-}.apk" >> "$GITHUB_ENV"
+          echo "RELEASE_TAG=v${VERSION// /-}-build-${GITHUB_RUN_NUMBER}" >> "$GITHUB_ENV"
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
         with:
-          name: LaZinePrayer-4.5.1-Hotfix
-          path: app/build/outputs/apk/debug/LaZinePrayer-4.5.1-Hotfix.apk
-          if-no-files-found: error
+          tag_name: ${{ env.RELEASE_TAG }}
+          name: LaZine Prayer ${{ env.APP_VERSION }}
+          target_commitish: ${{ github.sha }}
+          files: ${{ env.APK_PATH }}
+          generate_release_notes: true
+          make_latest: true
+          body: |
+            ## 🇪🇬 التغييرات
+            إصدار جديد من LaZine Prayer. راجع سجل التغييرات التلقائي بالأسفل لمعرفة التعديلات المضافة.
+
+            ## 🇬🇧 What's changed
+            New LaZine Prayer build. See the automatically generated changelog below for the included changes.
+
+            ---
+            **APK فقط مرفق كملف إصدار.** كود المصدر متاح من قسم **Source code** الذي ينشئه GitHub تلقائيًا.
+            **Only the APK is attached as a release asset.** Source code is available through GitHub's automatically generated **Source code** archives.
+          fail_on_unmatched_files: true
