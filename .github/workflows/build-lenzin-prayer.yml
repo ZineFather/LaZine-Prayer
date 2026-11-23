@@ -42,11 +42,6 @@ jobs:
           ffmpeg -y -i app/src/main/res/raw/andrewler-source.ogg -af "loudnorm=I=-16:TP=-1.5:LRA=11" -c:a libvorbis -q:a 6 app/src/main/res/raw/adhan_andrewler.ogg
           rm app/src/main/res/raw/adhan-source.ogg app/src/main/res/raw/sabah-source.mp3 app/src/main/res/raw/aqib-source.mp3 app/src/main/res/raw/andrewler-source.ogg
 
-      - name: Add developer profile image
-        run: |
-          mkdir -p app/src/main/res/drawable-nodpi
-          curl -L --fail --retry 3 "https://raw.githubusercontent.com/ZineFather/Pray-app/main/zinefather.jpg" -o app/src/main/res/drawable-nodpi/zinefather.jpg
-
       - name: Restore stable APK signing key
         id: stable-signing
         uses: actions/cache@v4
